@@ -3,6 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/Button/Button";
 import { InputText } from "../../components/InputText/InputText";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
+import {
+  validateEmail,
+  validatePassword,
+  validateMatchPassword,
+} from "../../utils/utils";
 
 export const Register = () => {
   const navigate = useNavigate();
@@ -14,48 +19,31 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMatchError, setPasswordMatchError] = useState("");
 
-  // ----------------------------------------------------------------
-  // an email address validation
-  // ----------------------------------------------------------------
-  const validateEmail = (email: string): boolean => {
-    let regex = /\S+@\S+\.\S+/;
-    if (!regex.test(email)) {
-      setEmailError("Please enter a valid email address.");
-      return false;
-    } else {
-      setEmailError("");
-      return true;
-    }
-  };
+  let isValid = true;
 
   // ----------------------------------------------------------------
-  // a password validation
+  // check an email address if it has already existed in a collection
   // ----------------------------------------------------------------
-  const validatePassword = (password: string): boolean => {
-    const regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$/;
-    if (!regex.test(password)) {
-      setPasswordError("Please enter a valid password.");
-      return false;
-    } else {
-      setPasswordError("");
-      return true;
-    }
-  };
-
-  // ----------------------------------------------------------------
-  // password match validation
-  // ----------------------------------------------------------------
-  const validateMatchPassword = (
-    password: string,
-    confirmPassword: string
-  ): boolean => {
-    if (password !== confirmPassword) {
-      setPasswordMatchError("Passwords do not match.");
-      return false;
-    } else {
-      setPasswordMatchError("");
-      return true;
-    }
+  const validateEmailExist = async (): Promise<boolean> => {
+    return await fetch("http://localhost:3001/api/friend/exist", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.count > 0) {
+          return true;
+        } else {
+          console.log("The email address has already existed.");
+          return false;
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        return false;
+      });
   };
 
   // ----------------------------------------------------------------
@@ -84,7 +72,7 @@ export const Register = () => {
   // ----------------------------------------------------------------
   // register a user data if it is valid
   // ----------------------------------------------------------------
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
     const isEmailValid = validateEmail(email);
@@ -94,9 +82,33 @@ export const Register = () => {
       confirmPassword
     );
 
-    if (isEmailValid && isPasswordValid && isMatchPasswordValid) {
-      registerUserData();
-      navigate("/login");
+    if (!isEmailValid) {
+      setEmailError("Please enter a valid email address.");
+      isValid = false;
+    } else {
+      setEmailError("");
+    }
+
+    if (!isPasswordValid) {
+      setPasswordError("Please enter a valid password.");
+      isValid = false;
+    } else {
+      setPasswordError("");
+    }
+
+    if (!isMatchPasswordValid) {
+      setPasswordMatchError("Please enter a valid email address.");
+      isValid = false;
+    } else {
+      setPasswordMatchError("");
+    }
+
+    if (isValid) {
+      const isEmailExist = await validateEmailExist();
+      if (isEmailExist) {
+        registerUserData();
+        navigate("/login");
+      }
     }
   };
 
