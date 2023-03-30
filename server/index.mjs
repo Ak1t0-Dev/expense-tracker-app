@@ -32,9 +32,24 @@ const usersSchema = new mongoose.Schema({
 
 const Users = mongoose.model('users', usersSchema);
 
-app.get("/api", async (req, res) => {
+app.get("/api/friend", async (req, res) => {
   try {
-    const users = await Users.find();
+    const users = await Users.find({},
+      { email: 1, password: 0, _id: 0 });
+    console.log(users);
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/api/friend/exist", async (req, res) => {
+  const value = req.body.value;
+  try {
+    const users = await Users.countDocuments({
+      email: value
+    })
     console.log(users);
     res.json(users);
   } catch (err) {

@@ -1,7 +1,7 @@
 import React from "react";
 
 interface InputTextProps {
-  type: "email" | "password" | "confirmPassword";
+  type: "email" | "password" | "confirmPassword" | "text";
   title: string;
   id: string;
   name: string;
