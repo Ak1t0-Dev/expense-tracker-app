@@ -35,7 +35,7 @@ const Users = mongoose.model('users', usersSchema);
 app.get("/api/friend", async (req, res) => {
   try {
     const users = await Users.find({},
-      { email: 1, password: 0, _id: 0 });
+      { email: 1, _id: 0 });
     console.log(users);
     res.json(users);
   } catch (err) {
@@ -49,6 +49,22 @@ app.post("/api/friend/exist", async (req, res) => {
   try {
     const users = await Users.countDocuments({
       email: value
+    })
+    console.log(users);
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  try {
+    const users = await Users.findOne({
+      email: email,
+      password: password
     })
     console.log(users);
     res.json(users);
