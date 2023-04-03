@@ -47,3 +47,15 @@ export const validatePayment = (payment: string): boolean => {
     return true;
   }
 };
+
+// ----------------------------------------------------------------
+// a description validation
+// ----------------------------------------------------------------
+export const validateDescription = (description: string): boolean => {
+  const regex = /^\w+$/;
+  if (!regex.test(description)) {
+    return false;
+  } else {
+    return true;
+  }
+};

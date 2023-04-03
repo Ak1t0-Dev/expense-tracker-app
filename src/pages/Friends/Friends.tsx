@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { InputText } from "../../components/InputText/InputText";
 import { Button } from "../../components/Button/Button";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
@@ -6,10 +6,16 @@ import { useNavigate } from "react-router-dom";
 import { validateEmail } from "../../utils/utils";
 import { Header } from "../../components/Header/Header";
 
+interface UserFriends {
+  email: string;
+  name: string;
+}
+
 export const Friends = () => {
   const navigate = useNavigate();
   let isValid = true;
 
+  const [friends, setFriends] = useState<UserFriends[]>([]);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
 
@@ -30,12 +36,32 @@ export const Friends = () => {
     }
   };
 
+  useEffect(() => {
+    fetch("http://localhost:3001/api/friends")
+      .then((response) => response.json())
+      .then((data) => {
+        setFriends(data);
+      });
+  }, []);
+
   return (
     <>
       <Header />
       <MainContainer>
         <div className="flex min-h-full items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-md space-y-8">
+            <div>
+              <h2>your friends list:</h2>
+              {friends.map((friend, index) => (
+                <div
+                  key={index}
+                  className="mb-2 border border-black px-4 py-2 flex flex-row justify-between"
+                >
+                  <span className="inline-block">{friend.name}</span>
+                  <span className="inline-block">{friend.email}</span>
+                </div>
+              ))}
+            </div>
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <input type="hidden" name="remember" value="true" />
               <div className="-space-y-px rounded-md">

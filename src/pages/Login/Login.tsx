@@ -32,6 +32,7 @@ export const Login = () => {
           return false;
         } else {
           // If user is found in the collection, return true
+          localStorage.setItem("expense-tracker", data.email);
           return true;
         }
       })

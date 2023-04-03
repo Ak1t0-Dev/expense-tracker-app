@@ -52,7 +52,7 @@ export const Register = () => {
   const registerUserData = async () => {
     const userData = { email, password };
     try {
-      const response = await fetch("http://localhost:3001/api/user", {
+      const response = await fetch("http://localhost:3001/api/register/user", {
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "application/json" },
