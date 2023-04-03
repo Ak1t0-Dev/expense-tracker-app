@@ -3,34 +3,64 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Header/Header";
 import { InputText } from "../../components/InputText/InputText";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
-import { validatePayment } from "../../utils/utils";
+import { validatePayment, validateDescription } from "../../utils/utils";
 import { RxCross1 } from "react-icons/rx";
 import Autosuggest from "react-autosuggest";
 import "./Expense.css";
+import { Button } from "../../components/Button/Button";
 
+// ----------------------------------------------------------------
+// interfaces
+// ----------------------------------------------------------------
 interface Friends {
   email: string;
 }
 
+interface Categories {
+  _id: number;
+  category_name: string;
+}
+
+interface Group {
+  group_name: string;
+  email: string; // to get user_id from a users collection
+  members: string[]; // to get user_id from a users collection and to create group members
+}
+
 export const Expense = () => {
   const [friends, setFriends] = useState<Friends[]>([]);
-  // const [suggestedFriends, setSuggestedFriends] = useState<string[]>([]);
   const [addedFriends, setAddedFriends] = useState<string[]>([]);
+  const [description, setDescription] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
+  const [payer, setPayer] = useState("");
   const [payment, setPayment] = useState("");
   const [paymentError, setPaymentError] = useState("");
   const [calcPayment, setCalcPayment] = useState(0);
+  const [categories, setCategories] = useState<Categories[]>([]);
+  const [category, setCategory] = useState("");
   // use for autosuggest
   const [suggestionItem, setsuggestionItem] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const lowerCasedFriends = friends.map((friend) => friend.email.toLowerCase());
+  // const lowerCasedFriends = friends.map((friend) => friend.email.toLowerCase());
 
+  // for assigning a user email from the local storage
+  const userEmail = localStorage.getItem("expense-tracker") || "";
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/friend")
+    fetch("http://localhost:3001/api/friends")
       .then((response) => response.json())
       .then((data) => {
         setFriends(data);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:3001/api/get/categories")
+      .then((response) => response.json())
+      .then((data) => {
+        setCategories(data);
+        setCategory(data[0]._id);
       });
   }, []);
 
@@ -39,9 +69,13 @@ export const Expense = () => {
   };
 
   const getSuggestions = (value: string): string[] => {
-    return lowerCasedFriends.filter((friend) =>
-      friend.startsWith(value.trim().toLowerCase())
-    );
+    // change Friends[] to string[]
+    const changeTypeFriends = friends.map((friend) => friend.email);
+
+    return changeTypeFriends.filter((friend) => {
+      const lowerCasedFriend = friend.toLowerCase();
+      return lowerCasedFriend.startsWith(value.trim().toLowerCase());
+    });
   };
 
   const renderSuggestion = (suggestion: string) => {
@@ -79,6 +113,7 @@ export const Expense = () => {
     event.preventDefault();
     // validations
     const isPaymentValid = validatePayment(payment);
+    const isDescriptionValid = validateDescription(description);
 
     if (!isPaymentValid) {
       setPaymentError("Payment should be a number");
@@ -87,9 +122,81 @@ export const Expense = () => {
       setPaymentError("");
     }
 
-    if (isValid) {
-      navigate("/login");
+    if (!isDescriptionValid) {
+      setDescriptionError("Description should be one or more characters");
+      isValid = false;
+    } else {
+      setDescriptionError("");
     }
+
+    if (isValid) {
+      createGroup();
+      // saveUserExpense();
+      navigate("/expense");
+    }
+  };
+
+  // ----------------------------------------------------------------
+  // create a group and members
+  // ----------------------------------------------------------------
+  const createGroup = async () => {
+    const group: Group = {
+      group_name: "default",
+      email: userEmail,
+      members: addedFriends,
+    };
+    try {
+      const response = await fetch("http://localhost:3001/api/register/group", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(group),
+      });
+
+      if (response.ok) {
+        console.log("Registration successful");
+      } else {
+        console.error("Registration failed");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ----------------------------------------------------------------
+  // save an expense to a collection
+  // ----------------------------------------------------------------
+  const saveUserExpense = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/api/expense/save", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(""), // ★★★★★★★★★★★★★★★★　後で修正 ★★★★★★★★★★★★★★★★
+      });
+
+      if (response.ok) {
+        console.log("Registration successful");
+      } else {
+        console.error("Registration failed");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setPayer(event.target.value);
+  };
+
+  const handleCategoriesChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setCategory(event.target.value);
+  };
+
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
   };
 
   return (
@@ -99,7 +206,7 @@ export const Expense = () => {
         <form onSubmit={handleSubmit}>
           <div>
             <h3>Choose your expense-sharing partner:</h3>
-            <Autosuggest
+            <Autosuggest // ■ 古いため、エラー
               suggestions={suggestions}
               alwaysRenderSuggestions
               onSuggestionsClearRequested={onSuggestionsClearRequested}
@@ -134,8 +241,32 @@ export const Expense = () => {
             </div>
           </div>
           <div>
-            <h3>Discription:</h3>
+            <h3>Categories:</h3>
+            <select
+              id="categories"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              onChange={handleCategoriesChange}
+            >
+              {categories.map((category) => {
+                return (
+                  <option key={category._id} value={category._id}>
+                    {category.category_name}
+                  </option>
+                );
+              })}
+            </select>
           </div>
+          <InputText
+            id="description"
+            title="Description:"
+            name="description"
+            value={description}
+            onChange={handleDescriptionChange}
+            type="text"
+            autoComplete="off"
+            placeholder="Had a dinner in a Japanese restuarant"
+            error={descriptionError}
+          />
           <InputText
             id="payment"
             title="Payment:"
@@ -143,17 +274,18 @@ export const Expense = () => {
             value={payment}
             onChange={calculatePayment}
             type="text"
-            autoComplete="email"
+            autoComplete="off"
             placeholder="100"
             error={paymentError}
           />
           <div>
             <h3>Payer:</h3>
             <select
-              id="countries"
+              id="payers"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              onChange={handleSelectChange}
             >
-              <option value="YOU">you</option>
+              <option value={userEmail}>you</option>
               {addedFriends.map((friend, index) => {
                 return (
                   <option key={index} value={friend}>
@@ -169,6 +301,14 @@ export const Expense = () => {
               {calcPayment}/person ({addedFriends.length + 1} people)
             </h4>
           </div>
+          <Button
+            name="SAVE"
+            textColor="text-amber-50"
+            bgColor="bg-amber-800"
+            hoverColor="hover:bg-amber-700"
+            focusColor="focus:bg-amber-800"
+            onClick={() => navigate("/expense")}
+          />
         </form>
       </MainContainer>
     </>

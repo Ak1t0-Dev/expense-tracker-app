@@ -22,7 +22,7 @@ export const Header = () => {
             onClick={() => navigate("/expense")}
           />
         </li>
-        <li className="header-item">
+        <li className="header-item" onClick={() => navigate("/friends")}>
           <AiOutlineUser />
           Friends
         </li>
