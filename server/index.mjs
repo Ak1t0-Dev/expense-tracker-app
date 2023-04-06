@@ -1,6 +1,8 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import { ObjectId } from 'bson';
+// use for expense
+import { v4 as uuidv4 } from 'uuid';
 
 // put the information in the env file
 const uri = 'mongodb+srv://admin001:Adm1n001@cluster0.7hck5vk.mongodb.net/expense-tracker-db?retryWrites=true&w=majority';
@@ -8,7 +10,6 @@ const port = 3001;
 
 const app = express();
 app.use(express.json());
-
 
 // cors対策
 app.use((req, res, next) => {
@@ -45,15 +46,35 @@ const Friends = mongoose.model('friends', friendsSchema);
 
 // categories config
 const categoriesSchema = new mongoose.Schema({
-  _id: { type: Number, required: true },
+  _id: { type: ObjectId, required: true },
+  category_order: { type: Number, required: true },
   category_name: { type: String, required: true }
 }, { versionKey: false });
 
 const Categories = mongoose.model('categories', categoriesSchema);
 
+// method config
+const methodsSchema = new mongoose.Schema({
+  _id: { type: ObjectId, required: true },
+  method_order: { type: Number, required: true },
+  method_name: { type: String, required: true }
+}, { versionKey: false });
+
+const Methods = mongoose.model('methods', methodsSchema);
+
+// processes config
+const processesSchema = new mongoose.Schema({
+  _id: { type: ObjectId, required: true },
+  process_status: { type: Number, required: true },
+  process_name: { type: String, required: true }
+}, { versionKey: false });
+
+const Processes = mongoose.model('process', processesSchema);
+
 // group config
 const groupsSchema = new mongoose.Schema({
-  group_name: { type: String, required: true },
+  group_name: { type: String },
+  member_id: { type: Array, required: true },
   registered_id: { type: ObjectId, required: true },
   registered_at: { type: Date, required: true },
   updated_id: { type: ObjectId },
@@ -62,52 +83,90 @@ const groupsSchema = new mongoose.Schema({
 
 const Groups = mongoose.model('groups', groupsSchema);
 
-// members config
-const membersSchema = new mongoose.Schema({
+// expense config
+const expensesSchema = new mongoose.Schema({
+  uuid: { type: String, required: true, unique: true },
+  payer_id: { type: ObjectId, required: true },
+  method_id: { type: ObjectId, required: true },
   group_id: { type: ObjectId, required: true },
-  member_id: { type: ObjectId, required: true },
+  process_id: { type: ObjectId, required: true },
+  category_id: { type: ObjectId, required: true },
+  description: { type: String, required: true },
+  payment: { type: Number, required: true },
+  registered_id: { type: ObjectId, required: true },
+  registered_at: { type: Date, required: true },
+  updated_id: { type: ObjectId },
+  updated_at: { type: Date }
 }, { versionKey: false });
 
-const Members = mongoose.model('members', membersSchema);
+const Expenses = mongoose.model('expenses', expensesSchema);
 
 app.post('/api/register/group', async (req, res) => {
+  const date = new Date();
   const email = req.body.email;
   const members = req.body.members;
+  const categoryOrder = req.body.category_order;
+  const methodOrder = req.body.method_order;
+  const processStatus = req.body.process_status;
+
+  console.log("categoryOrder", categoryOrder);
+  console.log("methodOrder", methodOrder);
+  console.log("processStatus", processStatus);
 
   try {
+    // ----------------------------------------------------------------------------
+    //  create a group
+    // ----------------------------------------------------------------------------
     const resultUser = await Users.findOne({
       email: email
-    })
+    }, { _id: 1 })
 
-    console.log(resultUser);
+    const resultMember = await Users.find({ email: { $in: members } },
+      { _id: 1 });
+
+    const groupMembers = [resultUser, ...resultMember];
 
     const newGroup = new Groups({
       group_name: req.body.group_name,
+      member_id: groupMembers,
       registered_id: resultUser._id,
-      registered_at: new Date(),
+      registered_at: date,
       updated_id: resultUser._id, // need to modify
-      updated_at: new Date(), // need to modify
+      updated_at: date, // need to modify
     })
     const resultGroup = await newGroup.save();
-    // const resultOne = await newMember.save();
-    console.log(`Inserted user with id ${resultGroup._id}`);
 
-    console.log(`Inserted user with id ${members}`);
-    // create a member
-    const membersEmail = await Users.find({ email: { $in: members } },
-      { email: 0, name: 0, password: 0, _id: 1 });
+    // ----------------------------------------------------------------------------
+    //  create an expense
+    // ----------------------------------------------------------------------------
+    const resultPayer = await Users.findOne({ email: req.body.payer });
+    const resultCategory = await Categories.findOne({ category_order: categoryOrder }, { _id: 1 });
+    const resultMethod = await Methods.findOne({ method_order: methodOrder }, { _id: 1 });
+    const resultProcess = await Processes.findOne({ process_status: processStatus }, { _id: 1 });
 
-    const groupMembers = membersEmail.map((memberEmail) => ({
-      group_id: resultGroup._id,
-      member_id: memberEmail,
-    }));
+    const uuid = uuidv4();
 
-    console.log("membersEmail", membersEmail);
-    console.log("groupMembers", groupMembers);
+    const newExpenses = new Expenses(
+      {
+        uuid: uuid,
+        payer_id: resultPayer._id,
+        group_id: resultGroup._id,
+        category_id: resultCategory._id,
+        method_id: resultMethod._id,
+        process_id: resultProcess._id,
+        description: req.body.description,
+        payment: req.body.payment,
+        registered_id: resultUser._id,
+        registered_at: date,
+        updated_id: resultUser._id,
+        updated_at: date,
+      }
+    );
 
-    const resultMembers = await Members.insertMany(groupMembers);
-    console.log(resultMembers);
-    res.json(resultMembers);
+    const resultExpense = await newExpenses.save();
+
+    console.log(resultExpense);
+    res.json(resultExpense);
 
   } catch (err) {
     console.error(err);
@@ -121,7 +180,8 @@ app.get("/api/friends", async (req, res) => {
       { friend_id: 1, _id: 0 });
     const friendIds = friends.map((friend) => friend.friend_id);
     const users = await Users.find({ _id: { $in: friendIds } },
-      { email: 1, name: 1, password: 0, _id: 0 });
+      // { email: 1, name: 1, password: 0, _id: 0 }); why it gets an error?
+      { email: 1, name: 1, _id: 0 });
     console.log(friendIds);
     console.log(users);
     res.json(users);
@@ -135,7 +195,7 @@ app.get("/api/friends", async (req, res) => {
 app.get("/api/get/categories", async (req, res) => {
   try {
     const categories = await Categories.find({},
-      { _id: 1, category_name: 1 });
+      { _id: 0, category_order: 1, category_name: 1 });
     console.log(categories);
     res.json(categories);
 
@@ -216,6 +276,138 @@ app.post('/api/register/user', async (req, res) => {
   try {
     const result = await newUser.save();
     console.log(`Inserted user with id ${result._id}`);
+
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+app.post("/api/history", async (req, res) => {
+  const email = req.body.email;
+  try {
+
+    // get user id from users collection
+    const userId = await Users.findOne({ email: email },
+      { _id: 1 })
+    // get groups that the user belongs
+    const userGroups = await Groups.find({ member_id: { $elemMatch: { _id: userId._id } } },
+      { _id: 1, member_id: 1 })
+    // make an array for $in operator values
+    const groupsArray = userGroups.map((group) => group._id);
+    console.log(groupsArray);
+
+    const expenses = await Expenses.aggregate([
+      { $sort: { registered_at: -1 } },
+      {
+        $match: {
+          group_id: { $in: groupsArray }
+        }
+      },
+      {
+        $lookup: {
+          from: "groups",
+          localField: "group_id",
+          foreignField: "_id",
+          as: "group"
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "group.member_id._id",
+          foreignField: "_id",
+          as: "members"
+        }
+      },
+      {
+        $lookup: {
+          from: "methods",
+          localField: "method_id",
+          foreignField: "_id",
+          as: "methods"
+        }
+      },
+      {
+        $lookup: {
+          from: "processes",
+          localField: "process_id",
+          foreignField: "_id",
+          as: "processes"
+        }
+      },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category_id",
+          foreignField: "_id",
+          as: "categories"
+        }
+      },
+      {
+        $unwind: "$group"
+      },
+      {
+        $unwind: "$categories"
+      },
+      {
+        $unwind: "$methods"
+      },
+      {
+        $unwind: "$processes"
+      },
+      {
+        $addFields: {
+          payer: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$members",
+                  as: "member",
+                  cond: { $eq: ["$$member._id", "$payer_id"] }
+                }
+              },
+              0
+            ]
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          uuid: 1,
+          group: {
+            group_name: 1
+          },
+          members: {
+            name: 1,
+            email: 1
+          },
+          categories: {
+            category_order: 1,
+            category_name: 1
+          },
+          methods: {
+            method_order: 1,
+            method_name: 1
+          },
+          processes: {
+            process_status: 1,
+            process_name: 1
+          },
+          description: 1,
+          payer: {
+            name: 1,
+            email: 1
+          },
+          payment: 1,
+          registered_at: 1,
+        },
+      }
+    ]);
+
+    console.log(expenses);
+    res.json(expenses);
 
   } catch (err) {
     console.error(err);

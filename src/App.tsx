@@ -7,6 +7,7 @@ import { Register } from "./pages/Register/Register";
 import { Main } from "./pages/Main/Main";
 import { Friends } from "./pages/Friends/Friends";
 import { Expense } from "./pages/Expense/Expense";
+import { History } from "./pages/History/History";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/main" element={<Main />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/history" element={<History />} />
         <Route path="/expense" element={<Expense />} />
       </Routes>
     </BrowserRouter>

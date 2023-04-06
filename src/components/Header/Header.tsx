@@ -30,7 +30,7 @@ export const Header = () => {
           <GrGroup />
           Groups
         </li>
-        <li className="header-item">
+        <li className="header-item" onClick={() => navigate("/history")}>
           <AiOutlineHistory />
           History
         </li>

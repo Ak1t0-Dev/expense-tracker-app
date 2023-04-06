@@ -17,7 +17,7 @@ interface Friends {
 }
 
 interface Categories {
-  _id: number;
+  category_order: number;
   category_name: string;
 }
 
@@ -25,26 +25,32 @@ interface Group {
   group_name: string;
   email: string; // to get user_id from a users collection
   members: string[]; // to get user_id from a users collection and to create group members
+  method_order: number;
+  process_status: number;
+  category_order: number;
+  description: string;
+  payment: number;
+  payer: string;
 }
 
 export const Expense = () => {
+  // for assigning a user email from the local storage
+  const userEmail = localStorage.getItem("expense-tracker") || "";
+
   const [friends, setFriends] = useState<Friends[]>([]);
   const [addedFriends, setAddedFriends] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
-  const [payer, setPayer] = useState("");
-  const [payment, setPayment] = useState("");
+  const [payer, setPayer] = useState(userEmail);
+  const [payment, setPayment] = useState(0);
   const [paymentError, setPaymentError] = useState("");
   const [calcPayment, setCalcPayment] = useState(0);
   const [categories, setCategories] = useState<Categories[]>([]);
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState(0);
   // use for autosuggest
   const [suggestionItem, setsuggestionItem] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  // const lowerCasedFriends = friends.map((friend) => friend.email.toLowerCase());
 
-  // for assigning a user email from the local storage
-  const userEmail = localStorage.getItem("expense-tracker") || "";
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -60,9 +66,20 @@ export const Expense = () => {
       .then((response) => response.json())
       .then((data) => {
         setCategories(data);
-        setCategory(data[0]._id);
+        setCategory(data[0].category_order);
       });
   }, []);
+
+  // for caluculation
+  useEffect(() => {
+    if (!isNaN(payment) && addedFriends.length > 0) {
+      setCalcPayment(
+        Math.floor((payment / (addedFriends.length + 1)) * 100) / 100
+      );
+    } else {
+      setCalcPayment(0);
+    }
+  }, [payment, addedFriends]);
 
   const onSuggestionsClearRequested = () => {
     setSuggestions([]);
@@ -97,15 +114,8 @@ export const Expense = () => {
   };
 
   const calculatePayment = (value: string) => {
-    setPayment(value);
-    const parsedValue = parseInt(value);
-    if (!isNaN(parsedValue) && addedFriends.length > 0) {
-      setCalcPayment(
-        Math.floor((parsedValue / (addedFriends.length + 1)) * 100) / 100
-      );
-    } else {
-      setCalcPayment(0);
-    }
+    const newPayment = parseInt(value);
+    setPayment(newPayment);
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -137,14 +147,21 @@ export const Expense = () => {
   };
 
   // ----------------------------------------------------------------
-  // create a group and members
+  // create a group and members and save an expense to a collection
   // ----------------------------------------------------------------
   const createGroup = async () => {
     const group: Group = {
-      group_name: "default",
+      group_name: "",
       email: userEmail,
       members: addedFriends,
+      category_order: category,
+      method_order: 1,
+      process_status: 1,
+      description: description,
+      payment: payment,
+      payer: payer,
     };
+
     try {
       const response = await fetch("http://localhost:3001/api/register/group", {
         method: "POST",
@@ -154,31 +171,9 @@ export const Expense = () => {
       });
 
       if (response.ok) {
-        console.log("Registration successful");
+        alert("Registration successful");
       } else {
-        console.error("Registration failed");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // ----------------------------------------------------------------
-  // save an expense to a collection
-  // ----------------------------------------------------------------
-  const saveUserExpense = async () => {
-    try {
-      const response = await fetch("http://localhost:3001/api/expense/save", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(""), // ★★★★★★★★★★★★★★★★　後で修正 ★★★★★★★★★★★★★★★★
-      });
-
-      if (response.ok) {
-        console.log("Registration successful");
-      } else {
-        console.error("Registration failed");
+        alert("Registration failed");
       }
     } catch (err) {
       console.error(err);
@@ -192,7 +187,7 @@ export const Expense = () => {
   const handleCategoriesChange = (
     event: React.ChangeEvent<HTMLSelectElement>
   ) => {
-    setCategory(event.target.value);
+    setCategory(parseInt(event.target.value));
   };
 
   const handleDescriptionChange = (value: string) => {
@@ -203,7 +198,7 @@ export const Expense = () => {
     <>
       <Header />
       <MainContainer>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="p-4">
           <div>
             <h3>Choose your expense-sharing partner:</h3>
             <Autosuggest // ■ 古いため、エラー
@@ -225,7 +220,8 @@ export const Expense = () => {
               }}
               highlightFirstSuggestion={true}
             />
-            <div className="h-28 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
+            {/* <div className="h-28 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1"> */}
+            <div className="h-10 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
               {addedFriends.map((friend, index) => {
                 return (
                   <span
@@ -244,12 +240,15 @@ export const Expense = () => {
             <h3>Categories:</h3>
             <select
               id="categories"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               onChange={handleCategoriesChange}
             >
               {categories.map((category) => {
                 return (
-                  <option key={category._id} value={category._id}>
+                  <option
+                    key={category.category_order}
+                    value={category.category_order}
+                  >
                     {category.category_name}
                   </option>
                 );
@@ -264,14 +263,14 @@ export const Expense = () => {
             onChange={handleDescriptionChange}
             type="text"
             autoComplete="off"
-            placeholder="Had a dinner in a Japanese restuarant"
+            placeholder="Had a dinner at a Japanese restuarant"
             error={descriptionError}
           />
           <InputText
             id="payment"
             title="Payment:"
             name="payment"
-            value={payment}
+            value={isNaN(payment) ? "" : payment.toString()}
             onChange={calculatePayment}
             type="text"
             autoComplete="off"
@@ -282,7 +281,7 @@ export const Expense = () => {
             <h3>Payer:</h3>
             <select
               id="payers"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
               onChange={handleSelectChange}
             >
               <option value={userEmail}>you</option>

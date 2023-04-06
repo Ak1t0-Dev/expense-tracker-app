@@ -11,7 +11,13 @@ export const HomePage = () => {
     <>
       <MainContainer>
         <h1>
-          <GiReceiveMoney style={{ display: "inline" }} />
+          <GiReceiveMoney
+            style={{
+              display: "inline",
+              fontSize: "2rem",
+              marginRight: "0.5rem",
+            }}
+          />
           SES
         </h1>
         <h2>SMART EXPENSE SAVER</h2>
