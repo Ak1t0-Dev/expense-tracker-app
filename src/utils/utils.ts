@@ -39,9 +39,9 @@ export const validateMatchPassword = (
 // ----------------------------------------------------------------
 // a payment validation
 // ----------------------------------------------------------------
-export const validatePayment = (payment: string): boolean => {
+export const validatePayment = (payment: number): boolean => {
   const regex = /^\d+$/;
-  if (!regex.test(payment)) {
+  if (!regex.test(payment.toString())) {
     return false;
   } else {
     return true;
@@ -58,4 +58,11 @@ export const validateDescription = (description: string): boolean => {
   } else {
     return true;
   }
+};
+
+// ----------------------------------------------------------------
+// substring a date (YYYY-MM-DD)
+// ----------------------------------------------------------------
+export const formattedDate = (date: Date): String => {
+  return date.toLocaleString().substring(0, 10);
 };
