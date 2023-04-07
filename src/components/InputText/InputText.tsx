@@ -1,5 +1,3 @@
-import React from "react";
-
 interface InputTextProps {
   type: "email" | "password" | "confirmPassword" | "text";
   title: string;

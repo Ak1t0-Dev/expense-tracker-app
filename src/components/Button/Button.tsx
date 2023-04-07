@@ -1,5 +1,3 @@
-import React from "react";
-
 interface Style {
   name: string;
   textColor: string;
