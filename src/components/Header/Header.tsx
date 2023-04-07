@@ -1,4 +1,3 @@
-import React from "react";
 import { AiOutlineUser } from "react-icons/ai";
 import { GrGroup } from "react-icons/gr";
 import { AiOutlineHistory } from "react-icons/ai";
@@ -34,7 +33,7 @@ export const Header = () => {
           <AiOutlineHistory />
           History
         </li>
-        <li className="header-item">
+        <li className="header-item" onClick={() => navigate("/account")}>
           <VscAccount />
           Account
         </li>

@@ -1,4 +1,3 @@
-import React from "react";
 import { UserHistory } from "../../pages/History/History";
 import { formattedDate } from "../../utils/utils";
 
@@ -11,7 +10,7 @@ export const Modal = ({ onClose, data }: ModalProps) => {
   if (!data) {
     return null; // if selectedHistory is null or undefined, don't render the modal
   }
-  console.log(data);
+
   return (
     <div
       id="large-modal"

@@ -239,10 +239,17 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/get/user", async (req, res) => {
   const email = req.body.email;
+
   try {
     const users = await Users.findOne({
       email: email
-    })
+    }, {
+      _id: 0,
+      name: 1,
+      email: 1,
+    },
+      { password: 0 }
+    )
     console.log(users);
     res.json(users);
 

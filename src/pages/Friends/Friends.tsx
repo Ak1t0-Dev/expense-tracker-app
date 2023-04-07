@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { InputText } from "../../components/InputText/InputText";
 import { Button } from "../../components/Button/Button";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
