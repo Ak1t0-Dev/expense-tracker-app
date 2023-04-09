@@ -204,6 +204,24 @@ app.post("/api/friends", async (req, res) => {
   }
 });
 
+app.post("/api/register/group", async (req, res) => {
+  const userData = {
+    uuid: uuidv4(),
+    date: new Date(),
+    group_name: req.body.group_name,
+    email: req.body.email,
+    members: req.body.members,
+  }
+  try {
+    const resultGroup = await createGroup(userData);
+    console.log(resultGroup);
+    res.json(resultGroup);
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
 app.post("/api/get/groups", async (req, res) => {
   const email = req.body.email;
 
@@ -212,7 +230,7 @@ app.post("/api/get/groups", async (req, res) => {
     const userId = await Users.findOne({ email: email })
 
     const groups = await Groups.aggregate([
-      { $sort: { group_name: -1 } },
+      { $sort: { group_name: 1 } },
       {
         $match: {
           member_id: {

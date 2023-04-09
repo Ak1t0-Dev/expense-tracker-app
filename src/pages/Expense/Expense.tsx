@@ -170,11 +170,12 @@ export const Expense = () => {
     setDescription(value);
   };
 
+  // for AutoSuggest
   const handleGetFriends = (value: string) => {
     setAddedFriends([...addedFriends, value]);
     return value;
   };
-
+  // for AutoSuggest
   const handleDeleteFriends = (value: string) => {
     const index = addedFriends.indexOf(value);
     if (index > -1) {

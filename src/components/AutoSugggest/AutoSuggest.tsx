@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Autosuggest from "react-autosuggest";
 import { RxCross1 } from "react-icons/rx";
 import { Friends } from "../../pages/Expense/Expense";
 
-type AutoSuggestProps = {
+interface AutoSuggestProps {
   friends: Friends[]; // modify: importing from expense
   handleGetFriends: (value: string) => string;
   handleDeleteFriends: (value: string) => void;
   addedFriends: string[];
-};
+}
 
 export const AutoSuggest = ({
   friends,
@@ -18,7 +18,6 @@ export const AutoSuggest = ({
 }: AutoSuggestProps) => {
   const [suggestionItem, setsuggestionItem] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  //   const [addedFriends, setAddedFriends] = useState<string[]>([]);
 
   const onSuggestionsClearRequested = () => {
     setSuggestions([]);
@@ -38,20 +37,6 @@ export const AutoSuggest = ({
     return <span>{suggestion}</span>;
   };
 
-  //   const getSuggestionValue = (suggestion: string) => {
-  //     setAddedFriends([...addedFriends, suggestion]);
-  //     return suggestion;
-  //   };
-
-  //   const deleteFriends = (value: string) => {
-  //     const index = addedFriends.indexOf(value);
-  //     if (index > -1) {
-  //       const newAddedFriends = [...addedFriends];
-  //       newAddedFriends.splice(index, 1);
-  //       setAddedFriends(newAddedFriends);
-  //     }
-  //   };
-
   return (
     <div>
       <h3>Choose your expense-sharing partner:</h3>
@@ -66,7 +51,7 @@ export const AutoSuggest = ({
         getSuggestionValue={handleGetFriends}
         renderSuggestion={renderSuggestion}
         inputProps={{
-          placeholder: "Type Email address",
+          placeholder: "Enter a email address",
           value: suggestionItem,
           onChange: (_, { newValue }) => {
             setsuggestionItem(newValue);
