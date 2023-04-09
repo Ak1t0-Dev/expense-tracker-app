@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Header } from "../../components/Header/Header";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
-import { Modal } from "../../components/Modal/Modal";
+import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
 import { formattedDate } from "../../utils/utils";
 
 interface User {
@@ -89,7 +89,7 @@ export const History = () => {
                   onClick={() => handleModalOpen(data)}
                 >
                   <span className="pr-0.5">
-                    date: {formattedDate(data.registered_at)};
+                    date: {formattedDate(data.registered_at)}
                   </span>
                   <span className="pr-0.5">
                     description: {data.description}
@@ -103,7 +103,7 @@ export const History = () => {
             })}
           </div>
           {isModalOpen ? (
-            <Modal onClose={handleModalClose} data={selectedHistory} />
+            <HistoryModal onClose={handleModalClose} data={selectedHistory} />
           ) : null}
         </div>
       </MainContainer>

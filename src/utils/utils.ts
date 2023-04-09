@@ -49,9 +49,9 @@ export const validatePayment = (payment: number): boolean => {
 };
 
 // ----------------------------------------------------------------
-// a description validation
+// string exist check
 // ----------------------------------------------------------------
-export const validateDescription = (description: string): boolean => {
+export const isStringExist = (description: string): boolean => {
   const regex = /^\w+$/;
   if (!regex.test(description)) {
     return false;

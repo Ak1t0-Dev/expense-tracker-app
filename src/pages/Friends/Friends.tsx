@@ -12,6 +12,7 @@ interface UserFriends {
 }
 
 export const Friends = () => {
+  const userEmail = localStorage.getItem("expense-tracker" || null);
   const navigate = useNavigate();
   let isValid = true;
 
@@ -37,12 +38,22 @@ export const Friends = () => {
   };
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/friends")
+    const postUser = {
+      email: userEmail,
+    };
+    fetch("http://localhost:3001/api/friends", {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(postUser),
+    })
       .then((response) => response.json())
       .then((data) => {
         setFriends(data);
       });
-  }, []);
+  }, [userEmail]);
 
   return (
     <>

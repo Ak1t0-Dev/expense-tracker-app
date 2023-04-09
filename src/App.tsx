@@ -8,6 +8,7 @@ import { Friends } from "./pages/Friends/Friends";
 import { Expense } from "./pages/Expense/Expense";
 import { History } from "./pages/History/History";
 import { Acccount } from "./pages/Account/Acccount";
+import { Groups } from "./pages/Groups/Groups";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/main" element={<Main />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/groups" element={<Groups />} />
         <Route path="/history" element={<History />} />
         <Route path="/expense" element={<Expense />} />
         <Route path="/account" element={<Acccount />} />

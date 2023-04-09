@@ -25,7 +25,7 @@ export const Header = () => {
           <AiOutlineUser />
           Friends
         </li>
-        <li className="header-item">
+        <li className="header-item" onClick={() => navigate("/groups")}>
           <GrGroup />
           Groups
         </li>

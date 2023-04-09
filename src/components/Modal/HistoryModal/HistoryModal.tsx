@@ -1,12 +1,12 @@
-import { UserHistory } from "../../pages/History/History";
-import { formattedDate } from "../../utils/utils";
+import { UserHistory } from "../../../pages/History/History";
+import { formattedDate } from "../../../utils/utils";
 
 type ModalProps = {
   onClose: () => void;
   data: UserHistory | null;
 };
 
-export const Modal = ({ onClose, data }: ModalProps) => {
+export const HistoryModal = ({ onClose, data }: ModalProps) => {
   if (!data) {
     return null; // if selectedHistory is null or undefined, don't render the modal
   }
