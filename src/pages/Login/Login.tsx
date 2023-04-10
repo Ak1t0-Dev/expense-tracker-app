@@ -14,6 +14,8 @@ export const Login = () => {
   const [passwordError, setPasswordError] = useState("");
 
   let isValid = true;
+  // make a button activated or not
+  const isDisabled = email.trim() === "" || password.trim() === "";
 
   // ----------------------------------------------------------------
   // a login function
@@ -116,6 +118,7 @@ export const Login = () => {
                   bgColor="bg-yellow-800"
                   hoverColor="hover:bg-yellow-700"
                   focusColor="focus:bg-yellow-800"
+                  disabled={isDisabled}
                 />
               </div>
             </form>

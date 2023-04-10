@@ -49,6 +49,12 @@ export const Expense = () => {
 
   const navigate = useNavigate();
 
+  const isDisabled =
+    addedFriends.length === 0 ||
+    description.trim() === "" ||
+    payment === 0 ||
+    isNaN(payment);
+
   useEffect(() => {
     const postUser = {
       email: userEmail,
@@ -267,6 +273,7 @@ export const Expense = () => {
             hoverColor="hover:bg-amber-700"
             focusColor="focus:bg-amber-800"
             onClick={() => navigate("/expense")}
+            disabled={isDisabled}
           />
         </form>
       </MainContainer>

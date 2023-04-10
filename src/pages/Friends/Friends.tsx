@@ -14,11 +14,13 @@ interface UserFriends {
 export const Friends = () => {
   const userEmail = localStorage.getItem("expense-tracker" || null);
   const navigate = useNavigate();
-  let isValid = true;
 
   const [friends, setFriends] = useState<UserFriends[]>([]);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
+
+  const isDisabled = email.trim() === "";
+  let isValid = true;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,7 +63,7 @@ export const Friends = () => {
       <MainContainer>
         <div className="flex flex-col min-h-full items-center justify-start py-12 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-md space-y-4">
-            <h2>your friends list</h2>
+            <h2>My Friends List</h2>
             {friends.map((friend, index) => (
               <div
                 key={index}
@@ -94,6 +96,7 @@ export const Friends = () => {
                     bgColor="bg-yellow-800"
                     hoverColor="hover:bg-yellow-700"
                     focusColor="focus:bg-yellow-800"
+                    disabled={isDisabled}
                   />
                 </div>
               </div>

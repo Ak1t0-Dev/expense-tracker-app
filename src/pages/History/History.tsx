@@ -15,15 +15,15 @@ export interface UserHistory {
     name: string;
   };
   group_name: string;
-  member: {
+  members: {
     email: string;
     name: string;
   }[];
-  method: {
+  methods: {
     method_order: Number;
     method_name: string;
   };
-  process: {
+  processes: {
     process_status: Number;
     process_name: string;
   };
@@ -33,6 +33,10 @@ export interface UserHistory {
   };
   description: string;
   payment: Number;
+  registered_name: {
+    email: string;
+    name: string;
+  };
   registered_at: Date;
 }
 
@@ -85,19 +89,22 @@ export const History = () => {
               return (
                 <div
                   key={index}
-                  className="mb-2 border border-black px-4 py-2 flex flex-row justify-between"
+                  className="mb-2 border border-black px-4 py-2"
                   onClick={() => handleModalOpen(data)}
                 >
-                  <span className="pr-0.5">
-                    date: {formattedDate(data.registered_at)}
-                  </span>
-                  <span className="pr-0.5">
-                    description: {data.description}
-                  </span>
-                  <span className="pr-0.5">
-                    payment: {data.payment.toString()}
-                  </span>
-                  <span className="pr-0.5">payer: {data.payer.name}</span>
+                  <div>{data.description}</div>
+                  <p>
+                    {data.payer.name} paid {data.payment.toString()}{" "}
+                    {data.group_name ? `at {data.group_name}` : null}
+                  </p>
+                  <div>
+                    <span className="pr-0.5">
+                      {formattedDate(data.registered_at)}
+                    </span>
+                    <span className="pr-0.5">
+                      added by {data.registered_name.name}
+                    </span>
+                  </div>
                 </div>
               );
             })}

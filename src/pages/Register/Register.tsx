@@ -7,11 +7,13 @@ import {
   validateEmail,
   validatePassword,
   validateMatchPassword,
+  isStringExist,
 } from "../../utils/utils";
 
 export const Register = () => {
   const navigate = useNavigate();
 
+  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
@@ -19,13 +21,14 @@ export const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMatchError, setPasswordMatchError] = useState("");
 
+  let isDisabled = true;
   let isValid = true;
 
   // ----------------------------------------------------------------
   // check an email address if it has already existed in a collection
   // ----------------------------------------------------------------
   const validateEmailExist = async (): Promise<boolean> => {
-    return await fetch("http://localhost:3001/api/friend/exist", {
+    return await fetch("http://localhost:3001/api/user/exist", {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
@@ -34,10 +37,11 @@ export const Register = () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.count > 0) {
-          return true;
-        } else {
           console.log("The email address has already existed.");
           return false;
+        } else {
+          alert("Registration successful");
+          return true;
         }
       })
       .catch((error) => {
@@ -50,7 +54,7 @@ export const Register = () => {
   // register a user data to a database
   // ----------------------------------------------------------------
   const registerUserData = async () => {
-    const userData = { email, password };
+    const userData = { userName, email, password };
     try {
       const response = await fetch("http://localhost:3001/api/register/user", {
         method: "POST",
@@ -75,12 +79,20 @@ export const Register = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
+    const isUserNameValid = isStringExist(userName);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
     const isMatchPasswordValid = validateMatchPassword(
       password,
       confirmPassword
     );
+
+    if (!isUserNameValid) {
+      setEmailError("Please enter a valid user name.");
+      isValid = false;
+    } else {
+      setEmailError("");
+    }
 
     if (!isEmailValid) {
       setEmailError("Please enter a valid email address.");
@@ -120,16 +132,28 @@ export const Register = () => {
             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
               <input type="hidden" name="remember" value="true" />
               <div className="-space-y-px rounded-md">
+                {/* user name input component */}
+                <InputText
+                  id="user-name"
+                  title="User name"
+                  name="user-name"
+                  value={userName}
+                  onChange={setUserName}
+                  type="text"
+                  autoComplete="off"
+                  placeholder="Enter your user name"
+                  error={emailError}
+                />
                 {/* email input component */}
                 <InputText
                   id="email-address"
                   title="Email address"
-                  name="email"
+                  name="email-address"
                   value={email}
                   onChange={setEmail}
                   type="email"
                   autoComplete="email"
-                  placeholder="Email address"
+                  placeholder="Enter your email address"
                   error={emailError}
                 />
 
@@ -142,7 +166,7 @@ export const Register = () => {
                   onChange={setPassword}
                   type="password"
                   autoComplete="current-password"
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   error={passwordError}
                 />
 
@@ -154,7 +178,7 @@ export const Register = () => {
                   value={confirmPassword}
                   onChange={setConfirmPassword}
                   type="password"
-                  autoComplete="current-password"
+                  autoComplete="off"
                   placeholder="Password"
                   error={passwordMatchError}
                 />
@@ -167,6 +191,7 @@ export const Register = () => {
                   bgColor="bg-yellow-800"
                   hoverColor="hover:bg-yellow-700"
                   focusColor="focus:bg-yellow-800"
+                  disabled={isDisabled}
                 />
               </div>
             </form>

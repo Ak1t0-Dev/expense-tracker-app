@@ -28,7 +28,6 @@ mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
 
 // users config
 const usersSchema = new mongoose.Schema({
-  _id: { type: ObjectId, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
   name: { type: String, required: true }
@@ -283,7 +282,7 @@ app.get("/api/get/categories", async (req, res) => {
   }
 });
 
-app.post("/api/friend/exist", async (req, res) => {
+app.post("/api/user/exist", async (req, res) => {
   const value = req.body.value;
   try {
     const users = await Users.countDocuments({
@@ -354,6 +353,7 @@ app.post("/api/get/userId", async (req, res) => {
 
 app.post('/api/register/user', async (req, res) => {
   const newUser = new Users({
+    name: req.body.userName,
     email: req.body.email,
     password: req.body.password
   })
@@ -454,6 +454,18 @@ app.post("/api/history", async (req, res) => {
               },
               0
             ]
+          },
+          registered_name: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$members",
+                  as: "member",
+                  cond: { $eq: ["$$member._id", "$registered_id"] }
+                }
+              },
+              0
+            ]
           }
         }
       },
@@ -486,6 +498,9 @@ app.post("/api/history", async (req, res) => {
             email: 1
           },
           payment: 1,
+          registered_name: {
+            name: 1, email: 1
+          },
           registered_at: 1,
         },
       }

@@ -61,6 +61,24 @@ export const isStringExist = (description: string): boolean => {
 };
 
 // ----------------------------------------------------------------
+// string length check
+// ----------------------------------------------------------------
+export const validateLength = (
+  value: string,
+  min: number,
+  max: number
+): boolean => {
+  const minLength = min;
+  const maxLength = max;
+  if (value.length < minLength || value.length > maxLength) {
+    return false;
+  } else {
+    // set the input value to the state variable
+    return true;
+  }
+};
+
+// ----------------------------------------------------------------
 // substring a date (YYYY-MM-DD)
 // ----------------------------------------------------------------
 export const formattedDate = (date: Date): String => {

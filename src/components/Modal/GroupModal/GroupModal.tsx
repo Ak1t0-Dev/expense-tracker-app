@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { InputText } from "../../InputText/InputText";
-import { isStringExist } from "../../../utils/utils";
+import { isStringExist, validateLength } from "../../../utils/utils";
 import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Friends } from "../../../pages/Expense/Expense";
 import { Button } from "../../Button/Button";
@@ -21,6 +21,10 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
   const [groupNameError, setGroupNameError] = useState("");
   const [friends, setFriends] = useState<Friends[]>([]);
   const [addedFriends, setAddedFriends] = useState<string[]>([]);
+  // to disable a button
+  const min = 1;
+  const max = 50;
+  const isDisabled = groupName.trim() === "" || addedFriends.length === 0;
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
@@ -42,6 +46,14 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
 
   const handleGroupChange = (value: string) => {
     setGroupName(value);
+
+    if (!validateLength(value, min, max)) {
+      setGroupNameError(
+        `Group name must be between ${min} and ${max} characters long.`
+      );
+    } else {
+      setGroupNameError("");
+    }
   };
 
   // for AutoSuggest
@@ -166,6 +178,7 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
                 bgColor="bg-amber-800"
                 hoverColor="hover:bg-amber-700"
                 focusColor="focus:bg-amber-800"
+                disabled={isDisabled}
               />
             </div>
           </div>

@@ -39,7 +39,7 @@ export const AutoSuggest = ({
 
   return (
     <div>
-      <h3>Choose your expense-sharing partner:</h3>
+      <h3>Choose your expense-sharing partners:</h3>
       <Autosuggest // ■ 古いため、エラー
         suggestions={suggestions}
         alwaysRenderSuggestions

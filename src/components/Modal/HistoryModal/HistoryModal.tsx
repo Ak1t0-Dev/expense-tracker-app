@@ -17,9 +17,9 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
       className="fixed top-0 left-50 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] md:h-full"
     >
       <div className="relative w-full h-full max-w-4xl md:h-auto">
-        <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
-          <div className="flex items-center justify-between p-5 border-b rounded-t dark:border-gray-600">
-            <h3 className="text-xl font-medium text-gray-900 dark:text-white">
+        <div className="relative bg-white rounded-lg shadow">
+          <div className="flex items-center justify-between p-5 border-b rounded-t">
+            <h3 className="text-xl font-medium text-black">
               <span>{formattedDate(data.registered_at)}</span>
               <span>{data.description}</span>
             </h3>
@@ -55,6 +55,9 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
                 {data.group_name}
               </div>
             )}
+            {data.members.map((member, index) => {
+              return <span key={index}>{member.name}</span>;
+            })}
             <div className="text-base leading-relaxed text-gray-500 dark:text-gray-400">
               {data.categories.category_name}
             </div>
