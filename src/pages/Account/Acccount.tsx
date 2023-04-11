@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { Header } from "../../components/Header/Header";
 import { Button } from "../../components/Button/Button";
 import { AccountModal } from "../../components/Modal/AccountModal/AccountModal";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "../../contexts/AuthContext";
 
 interface UserInfo {
   name: string;
@@ -14,6 +16,14 @@ export const Acccount = () => {
   const userEmail = localStorage.getItem("expense-tracker") || "";
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     const postUser = {
@@ -41,9 +51,6 @@ export const Acccount = () => {
     setIsModalOpen(false);
   };
 
-  if (!user) {
-    return null;
-  }
   return (
     <>
       <Header />
@@ -51,8 +58,14 @@ export const Acccount = () => {
         <div className="flex flex-col min-h-full items-center justify-start py-12 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-md space-y-4">
             <h2>My Account</h2>
-            <div>Name: {user.name}</div>
-            <div>Email Address: {user.email}</div>
+            <div className="h-64 bg-white border-2 border-black px-4 py-8 text-xl font-semibold">
+              {user && (
+                <>
+                  <div className="mb-4">Name: {user.name}</div>
+                  <div className="mb-4">Email Address: {user.email}</div>
+                </>
+              )}
+            </div>
           </div>
           <div>
             <Button

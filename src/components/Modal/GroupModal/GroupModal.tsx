@@ -4,6 +4,15 @@ import { isStringExist, validateLength } from "../../../utils/utils";
 import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Friends } from "../../../pages/Expense/Expense";
 import { Button } from "../../Button/Button";
+import { Snackbar } from "../../Snackbar/Snackbar";
+import {
+  CATCHED_ERROR,
+  EMPTY,
+  GROUP_NAME_LENGTH,
+  REGISTER_ERROR,
+  REGISTER_SUCCESSFUL,
+} from "../../../constants/message";
+import { STATUS } from "../../../constants/constants";
 
 interface ModalProps {
   onClose: () => void;
@@ -21,38 +30,46 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
   const [groupNameError, setGroupNameError] = useState("");
   const [friends, setFriends] = useState<Friends[]>([]);
   const [addedFriends, setAddedFriends] = useState<string[]>([]);
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
   // to disable a button
   const min = 1;
   const max = 50;
   const isDisabled = groupName.trim() === "" || addedFriends.length === 0;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
     event.preventDefault();
     // validations
     const isGroupNameValid = isStringExist(groupName);
 
     if (!isGroupNameValid) {
-      setGroupNameError("Group name should be one or more characters");
+      setGroupNameError(GROUP_NAME_LENGTH);
       isValid = false;
     } else {
-      setGroupNameError("");
+      setGroupNameError(EMPTY);
     }
 
     if (isValid) {
-      createGroup();
+      const isGroupRegistered = await createGroup();
+      if (isGroupRegistered) {
+        handleInputReset();
+      }
     }
+  };
+
+  const handleInputReset = () => {
+    setAddedFriends([]);
+    setGroupName("");
   };
 
   const handleGroupChange = (value: string) => {
     setGroupName(value);
 
     if (!validateLength(value, min, max)) {
-      setGroupNameError(
-        `Group name must be between ${min} and ${max} characters long.`
-      );
+      setGroupNameError(GROUP_NAME_LENGTH);
     } else {
-      setGroupNameError("");
+      setGroupNameError(EMPTY);
     }
   };
 
@@ -74,12 +91,37 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
   // ----------------------------------------------------------------
   // create a group and members and save an expense to a collection
   // ----------------------------------------------------------------
-  const createGroup = async () => {
+  const createGroup = async (): Promise<boolean> => {
     const group: Group = {
       group_name: groupName,
       email: userEmail,
       members: addedFriends,
     };
+
+    //   try {
+    //     const response = await fetch("http://localhost:3001/api/exist/group", {
+    //       method: "POST",
+    //       mode: "cors",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify(group),
+    //     });
+
+    //     if (response.ok) {
+    //       setMessage(REGISTER_SUCCESSFUL);
+    //       setStatus(STATUS.SUCCESS);
+    //       return true;
+    //     } else {
+    //       setMessage(REGISTER_ERROR);
+    //       setStatus(STATUS.ERROR);
+    //       return false;
+    //     }
+    //   } catch (err) {
+    //     setMessage(CATCHED_ERROR);
+    //     setStatus(STATUS.ERROR);
+    //     console.error(err);
+    //     return false;
+    //   }
+    // };
 
     try {
       const response = await fetch("http://localhost:3001/api/register/group", {
@@ -90,12 +132,19 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
       });
 
       if (response.ok) {
-        alert("Registration successful");
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        return true;
       } else {
-        alert("Registration failed");
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
       }
     } catch (err) {
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
       console.error(err);
+      return false;
     }
   };
 
@@ -184,6 +233,7 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
           </div>
         </form>
       </div>
+      {status !== "" ? <Snackbar type={status} message={message} /> : null}
     </div>
   );
 };

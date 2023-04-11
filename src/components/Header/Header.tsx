@@ -2,11 +2,16 @@ import { AiOutlineUser } from "react-icons/ai";
 import { GrGroup } from "react-icons/gr";
 import { AiOutlineHistory } from "react-icons/ai";
 import { VscAccount } from "react-icons/vsc";
+import { RiLogoutBoxRLine } from "react-icons/ri";
+
 import "./Header.css";
 import { Button } from "../Button/Button";
 import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import AuthContext from "../../contexts/AuthContext";
 
 export const Header = () => {
+  const { handleLogout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   return (
@@ -37,6 +42,10 @@ export const Header = () => {
         <li className="header-item" onClick={() => navigate("/account")}>
           <VscAccount />
           Account
+        </li>
+        <li className="header-item" onClick={handleLogout}>
+          <RiLogoutBoxRLine />
+          Logout
         </li>
       </ul>
     </header>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/Button/Button";
 import { InputText } from "../../components/InputText/InputText";
@@ -14,12 +14,11 @@ import {
   CATCHED_ERROR,
 } from "../../constants/message";
 import { STATUS } from "../../constants/constants";
+import AuthContext from "../../contexts/AuthContext";
 
 export const Login = () => {
   const navigate = useNavigate();
-
-  // type Status = keyof typeof STATUS;
-
+  const { setIsLoggedIn } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
@@ -48,6 +47,7 @@ export const Login = () => {
           setStatus(STATUS.ERROR);
         } else {
           localStorage.setItem("expense-tracker", data.email);
+          setIsLoggedIn(true);
           setMessage(LOGIN_SUCCESSFUL);
           setStatus(STATUS.SUCCESS);
           setTimeout(() => {

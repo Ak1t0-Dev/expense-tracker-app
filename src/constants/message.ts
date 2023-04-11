@@ -16,6 +16,8 @@ export const CATCHED_ERROR = "Something went wrong.";
 export const PAYMENT_ERROR = "Payment should be a number.";
 export const DESCRIPTION_ERROR =
   "Description should be one or more characters.";
+export const GROUP_NAME_LENGTH =
+  "Group name must be between {min} and {max} characters long.";
 // placeholders
 export const ENTER_USERNAME = "Enter your user name";
 export const ENTER_EMAIL = "Enter your email address";

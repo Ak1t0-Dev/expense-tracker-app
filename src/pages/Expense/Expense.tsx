@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Header/Header";
 import { InputText } from "../../components/InputText/InputText";
@@ -17,6 +17,7 @@ import {
 } from "../../constants/message";
 import { STATUS } from "../../constants/constants";
 import "./Expense.css";
+import AuthContext from "../../contexts/AuthContext";
 
 // ----------------------------------------------------------------
 // interfaces
@@ -60,6 +61,13 @@ export const Expense = () => {
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
 
   const isDisabled =
     addedFriends.length === 0 ||
