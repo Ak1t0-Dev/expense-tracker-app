@@ -9,19 +9,41 @@ import {
   validateMatchPassword,
   isStringExist,
 } from "../../utils/utils";
+import {
+  CATCHED_ERROR,
+  EMAIL_EXISTS,
+  EMAIL_INVALID,
+  EMPTY,
+  ENTER_EMAIL,
+  ENTER_PASSWORD,
+  NAME_INVALID,
+  PASSWORD_INVALID,
+  PASSWORD_UNMATCHED,
+  REGISTER_ERROR,
+  REGISTER_SUCCESSFUL,
+} from "../../constants/message";
+import { STATUS } from "../../constants/constants";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
 
 export const Register = () => {
   const navigate = useNavigate();
 
   const [userName, setUserName] = useState("");
+  const [userNameError, setUserNameError] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordMatchError, setPasswordMatchError] = useState("");
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
 
-  let isDisabled = true;
+  let isDisabled =
+    userName.trim() === "" ||
+    email.trim() === "" ||
+    password.trim() === "" ||
+    confirmPassword.trim() === "";
   let isValid = true;
 
   // ----------------------------------------------------------------
@@ -36,16 +58,21 @@ export const Register = () => {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.count > 0) {
-          console.log("The email address has already existed.");
+        if (data === 0) {
+          return true;
+        } else if (data > 0) {
+          setEmailError(EMAIL_EXISTS);
           return false;
         } else {
-          alert("Registration successful");
-          return true;
+          setMessage(REGISTER_ERROR);
+          setStatus(STATUS.ERROR);
+          return false;
         }
       })
       .catch((error) => {
         console.error(error);
+        setMessage(CATCHED_ERROR);
+        setStatus(STATUS.ERROR);
         return false;
       });
   };
@@ -53,7 +80,7 @@ export const Register = () => {
   // ----------------------------------------------------------------
   // register a user data to a database
   // ----------------------------------------------------------------
-  const registerUserData = async () => {
+  const registerUserData = async (): Promise<boolean> => {
     const userData = { userName, email, password };
     try {
       const response = await fetch("http://localhost:3001/api/register/user", {
@@ -64,12 +91,22 @@ export const Register = () => {
       });
 
       if (response.ok) {
-        console.log("Registration successful");
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+        return true;
       } else {
-        console.error("Registration failed");
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
     }
   };
 
@@ -88,39 +125,36 @@ export const Register = () => {
     );
 
     if (!isUserNameValid) {
-      setEmailError("Please enter a valid user name.");
+      setUserNameError(NAME_INVALID);
       isValid = false;
     } else {
-      setEmailError("");
+      setUserNameError(EMPTY);
     }
 
     if (!isEmailValid) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(EMAIL_INVALID);
       isValid = false;
     } else {
-      setEmailError("");
+      setEmailError(EMPTY);
     }
 
     if (!isPasswordValid) {
-      setPasswordError("Please enter a valid password.");
+      setPasswordError(PASSWORD_INVALID);
       isValid = false;
     } else {
-      setPasswordError("");
+      setPasswordError(EMPTY);
     }
 
     if (!isMatchPasswordValid) {
-      setPasswordMatchError("Please enter a valid email address.");
+      setPasswordMatchError(PASSWORD_UNMATCHED);
       isValid = false;
     } else {
-      setPasswordMatchError("");
+      setPasswordMatchError(EMPTY);
     }
 
     if (isValid) {
       const isEmailExist = await validateEmailExist();
-      if (isEmailExist) {
-        registerUserData();
-        navigate("/login");
-      }
+      if (isEmailExist) await registerUserData();
     }
   };
 
@@ -142,7 +176,7 @@ export const Register = () => {
                   type="text"
                   autoComplete="off"
                   placeholder="Enter your user name"
-                  error={emailError}
+                  error={userNameError}
                 />
                 {/* email input component */}
                 <InputText
@@ -153,7 +187,7 @@ export const Register = () => {
                   onChange={setEmail}
                   type="email"
                   autoComplete="email"
-                  placeholder="Enter your email address"
+                  placeholder={ENTER_EMAIL}
                   error={emailError}
                 />
 
@@ -166,7 +200,7 @@ export const Register = () => {
                   onChange={setPassword}
                   type="password"
                   autoComplete="current-password"
-                  placeholder="Enter your password"
+                  placeholder={ENTER_PASSWORD}
                   error={passwordError}
                 />
 
@@ -179,7 +213,7 @@ export const Register = () => {
                   onChange={setConfirmPassword}
                   type="password"
                   autoComplete="off"
-                  placeholder="Password"
+                  placeholder={ENTER_PASSWORD}
                   error={passwordMatchError}
                 />
               </div>
@@ -197,6 +231,7 @@ export const Register = () => {
             </form>
           </div>
         </div>
+        {status !== "" ? <Snackbar type={status} message={message} /> : null}
       </MainContainer>
     </>
   );

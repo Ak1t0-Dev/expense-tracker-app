@@ -6,6 +6,16 @@ import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { validatePayment, isStringExist } from "../../utils/utils";
 import { AutoSuggest } from "../../components/AutoSugggest/AutoSuggest";
 import { Button } from "../../components/Button/Button";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
+import {
+  EMPTY,
+  PAYMENT_ERROR,
+  DESCRIPTION_ERROR,
+  CATCHED_ERROR,
+  REGISTER_SUCCESSFUL,
+  REGISTER_ERROR,
+} from "../../constants/message";
+import { STATUS } from "../../constants/constants";
 import "./Expense.css";
 
 // ----------------------------------------------------------------
@@ -46,6 +56,8 @@ export const Expense = () => {
   const [calcPayment, setCalcPayment] = useState(0);
   const [categories, setCategories] = useState<Categories[]>([]);
   const [category, setCategory] = useState(0);
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -98,7 +110,7 @@ export const Expense = () => {
     setPayment(newPayment);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
     event.preventDefault();
     // validations
@@ -106,29 +118,31 @@ export const Expense = () => {
     const isDescriptionValid = isStringExist(description);
 
     if (!isPaymentValid) {
-      setPaymentError("Payment should be a number");
+      setPaymentError(PAYMENT_ERROR);
       isValid = false;
     } else {
-      setPaymentError("");
+      setPaymentError(EMPTY);
     }
 
     if (!isDescriptionValid) {
-      setDescriptionError("Description should be one or more characters");
+      setDescriptionError(DESCRIPTION_ERROR);
       isValid = false;
     } else {
-      setDescriptionError("");
+      setDescriptionError(EMPTY);
     }
 
     if (isValid) {
-      createExpense();
-      navigate("/expense");
+      const isRegisterSucceed = await createExpense();
+      if (isRegisterSucceed) {
+        handleInputReset();
+      }
     }
   };
 
   // ----------------------------------------------------------------
   // create a group and members and save an expense to a collection
   // ----------------------------------------------------------------
-  const createExpense = async () => {
+  const createExpense = async (): Promise<boolean> => {
     const group: Group = {
       group_name: "",
       email: userEmail,
@@ -153,12 +167,22 @@ export const Expense = () => {
       );
 
       if (response.ok) {
-        alert("Registration successful");
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        setTimeout(() => {
+          navigate("/expense");
+        }, 1000);
+        return true;
       } else {
-        alert("Registration failed");
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
     }
   };
 
@@ -189,6 +213,15 @@ export const Expense = () => {
       newAddedFriends.splice(index, 1);
       setAddedFriends(newAddedFriends);
     }
+  };
+
+  const handleInputReset = () => {
+    setAddedFriends([]);
+    setDescription("");
+    setPayer(userEmail);
+    setPayment(0);
+    setCalcPayment(0);
+    setCategory(0);
   };
 
   return (
@@ -276,6 +309,7 @@ export const Expense = () => {
             disabled={isDisabled}
           />
         </form>
+        {status !== "" ? <Snackbar type={status} message={message} /> : null}
       </MainContainer>
     </>
   );

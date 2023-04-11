@@ -125,6 +125,7 @@ const createGroup = async (userData) => {
     updated_at: userData.date, // need to modify
   })
 
+  console.log("newGroup", newGroup);
   return await newGroup.save();
 }
 
@@ -133,6 +134,7 @@ app.post('/api/register/expense', async (req, res) => {
   const userData = {
     uuid: uuidv4(),
     date: new Date(),
+    group_name: req.body.group_name,
     email: req.body.email,
     members: req.body.members,
   }
@@ -283,10 +285,10 @@ app.get("/api/get/categories", async (req, res) => {
 });
 
 app.post("/api/user/exist", async (req, res) => {
-  const value = req.body.value;
+  const email = req.body.email;
   try {
     const users = await Users.countDocuments({
-      email: value
+      email: email
     })
     console.log(users);
     res.json(users);
@@ -361,6 +363,7 @@ app.post('/api/register/user', async (req, res) => {
   try {
     const result = await newUser.save();
     console.log(`Inserted user with id ${result._id}`);
+    res.json(result);
 
   } catch (err) {
     console.error(err);
