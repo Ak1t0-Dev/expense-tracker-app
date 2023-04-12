@@ -1,24 +1,39 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/Button/Button";
 import { InputText } from "../../components/InputText/InputText";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { validateEmail, validatePassword } from "../../utils/utils";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
+import {
+  EMAIL_INVALID,
+  EMPTY,
+  LOGIN_SUCCESSFUL,
+  LOGIN_ERROR,
+  PASSWORD_INVALID,
+  CATCHED_ERROR,
+} from "../../constants/message";
+import { STATUS } from "../../constants/constants";
+import AuthContext from "../../contexts/AuthContext";
 
 export const Login = () => {
   const navigate = useNavigate();
-
+  const { setIsLoggedIn } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
 
   let isValid = true;
+  // make a button activated or not
+  const isDisabled = email.trim() === "" || password.trim() === "";
 
   // ----------------------------------------------------------------
   // a login function
   // ----------------------------------------------------------------
-  const loginUser = async (): Promise<boolean> => {
+  const loginUser = async () => {
     return await fetch("http://localhost:3001/api/login", {
       method: "POST",
       mode: "cors",
@@ -28,17 +43,22 @@ export const Login = () => {
       .then((response) => response.json())
       .then((data) => {
         if (!data) {
-          // If user is not found in the collection, return false
-          return false;
+          setMessage(LOGIN_ERROR);
+          setStatus(STATUS.ERROR);
         } else {
-          // If user is found in the collection, return true
           localStorage.setItem("expense-tracker", data.email);
-          return true;
+          setIsLoggedIn(true);
+          setMessage(LOGIN_SUCCESSFUL);
+          setStatus(STATUS.SUCCESS);
+          setTimeout(() => {
+            navigate("/expense");
+          }, 1500);
         }
       })
       .catch((error) => {
-        console.error(error);
-        return false;
+        console.log(error);
+        setMessage(CATCHED_ERROR);
+        setStatus(STATUS.ERROR);
       });
   };
 
@@ -52,25 +72,21 @@ export const Login = () => {
     const isPasswordValid = validatePassword(password);
 
     if (!isEmailValid) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(EMAIL_INVALID);
       isValid = false;
     } else {
-      setEmailError("");
+      setEmailError(EMPTY);
     }
 
     if (!isPasswordValid) {
-      setPasswordError("Please enter a valid password.");
+      setPasswordError(PASSWORD_INVALID);
       isValid = false;
     } else {
-      setPasswordError("");
+      setPasswordError(EMPTY);
     }
 
     if (isValid) {
-      if (await loginUser()) {
-        navigate("/expense");
-      } else {
-        console.log("Login failed. Invalid email or password.");
-      }
+      await loginUser();
     }
   };
 
@@ -116,11 +132,13 @@ export const Login = () => {
                   bgColor="bg-yellow-800"
                   hoverColor="hover:bg-yellow-700"
                   focusColor="focus:bg-yellow-800"
+                  disabled={isDisabled}
                 />
               </div>
             </form>
           </div>
         </div>
+        {status !== "" ? <Snackbar type={status} message={message} /> : null}
       </MainContainer>
     </>
   );

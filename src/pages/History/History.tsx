@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Header } from "../../components/Header/Header";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
-import { Modal } from "../../components/Modal/Modal";
-import { formattedDate } from "../../utils/utils";
+import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
+import { formattedDateTime } from "../../utils/utils";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "../../contexts/AuthContext";
 
 interface User {
   email: string;
@@ -15,24 +17,28 @@ export interface UserHistory {
     name: string;
   };
   group_name: string;
-  member: {
+  members: {
     email: string;
     name: string;
   }[];
-  method: {
-    method_order: Number;
+  methods: {
+    method_order: number;
     method_name: string;
   };
-  process: {
-    process_status: Number;
+  processes: {
+    process_status: number;
     process_name: string;
   };
   categories: {
-    category_order: Number;
+    category_order: number;
     category_name: string;
   };
   description: string;
-  payment: Number;
+  payment: number;
+  registered_name: {
+    email: string;
+    name: string;
+  };
   registered_at: Date;
 }
 
@@ -44,6 +50,14 @@ export const History = () => {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AuthContext);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     const user: User = {
@@ -74,36 +88,64 @@ export const History = () => {
     setIsModalOpen(false);
   };
 
+  const getStyle = (email: string, payer: string) => {
+    if (userEmail === email) {
+      return {
+        borderColor: "border-green-700",
+        textColor: "text-green-700",
+        payerName: "You",
+      };
+    } else {
+      return {
+        borderColor: "border-blue-700",
+        textColor: "text-blue-700",
+        payerName: payer,
+      };
+    }
+  };
+
   return (
     <>
       <Header />
       <MainContainer>
-        <div className="flex flex-col min-h-full items-center justify-start py-12 px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col min-h-full items-center justify-start pt-12 pb-4 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-md space-y-4">
             <h2>History</h2>
-            {history.map((data, index) => {
-              return (
-                <div
-                  key={index}
-                  className="mb-2 border border-black px-4 py-2 flex flex-row justify-between"
-                  onClick={() => handleModalOpen(data)}
-                >
-                  <span className="pr-0.5">
-                    date: {formattedDate(data.registered_at)};
-                  </span>
-                  <span className="pr-0.5">
-                    description: {data.description}
-                  </span>
-                  <span className="pr-0.5">
-                    payment: {data.payment.toString()}
-                  </span>
-                  <span className="pr-0.5">payer: {data.payer.name}</span>
-                </div>
-              );
-            })}
+            <div className="h-96 overflow-auto">
+              {history.map((data, index) => {
+                const style = getStyle(data.payer.email, data.payer.name);
+                return (
+                  <div
+                    key={index}
+                    className={`mb-2 border-2 rounded-lg ${style.borderColor} px-4 py-2 bg-white`}
+                    onClick={() => handleModalOpen(data)}
+                  >
+                    <div className="font-medium text-lg">
+                      {data.description}
+                    </div>
+                    <p className={`font-semibold ${style.textColor}`}>
+                      {style.payerName} paid{" "}
+                      {data.payment.toLocaleString().toString()}{" "}
+                      {data.group_name ? `at ${data.group_name}` : null}
+                    </p>
+                    <div className="text-sm">
+                      <span className="pr-3">
+                        {formattedDateTime(data.registered_at)}
+                      </span>
+                      <span className="pr-0.5">
+                        added by{" "}
+                        {userEmail === data.registered_name.email
+                          ? "you"
+                          : data.registered_name.name}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           {isModalOpen ? (
-            <Modal onClose={handleModalClose} data={selectedHistory} />
+            <HistoryModal onClose={handleModalClose} data={selectedHistory} />
           ) : null}
         </div>
       </MainContainer>

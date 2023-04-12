@@ -1,18 +1,32 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Header/Header";
 import { InputText } from "../../components/InputText/InputText";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
-import { validatePayment, validateDescription } from "../../utils/utils";
-import { RxCross1 } from "react-icons/rx";
-import Autosuggest from "react-autosuggest";
-import "./Expense.css";
+import {
+  validatePayment,
+  isStringExist,
+  calculateExpense,
+} from "../../utils/utils";
+import { AutoSuggest } from "../../components/AutoSugggest/AutoSuggest";
 import { Button } from "../../components/Button/Button";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
+import {
+  EMPTY,
+  PAYMENT_ERROR,
+  DESCRIPTION_ERROR,
+  CATCHED_ERROR,
+  REGISTER_SUCCESSFUL,
+  REGISTER_ERROR,
+} from "../../constants/message";
+import { STATUS } from "../../constants/constants";
+import "./Expense.css";
+import AuthContext from "../../contexts/AuthContext";
 
 // ----------------------------------------------------------------
 // interfaces
 // ----------------------------------------------------------------
-interface Friends {
+export interface Friends {
   email: string;
 }
 
@@ -47,19 +61,41 @@ export const Expense = () => {
   const [calcPayment, setCalcPayment] = useState(0);
   const [categories, setCategories] = useState<Categories[]>([]);
   const [category, setCategory] = useState(0);
-  // use for autosuggest
-  const [suggestionItem, setsuggestionItem] = useState("");
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
+  const { isLoggedIn } = useContext(AuthContext);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/friends")
+    if (!isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
+
+  const isDisabled =
+    addedFriends.length === 0 ||
+    description.trim() === "" ||
+    payment === 0 ||
+    isNaN(payment);
+
+  useEffect(() => {
+    const postUser = {
+      email: userEmail,
+    };
+    fetch("http://localhost:3001/api/friends", {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(postUser),
+    })
       .then((response) => response.json())
       .then((data) => {
         setFriends(data);
       });
-  }, []);
+  }, [userEmail]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/get/categories")
@@ -70,86 +106,48 @@ export const Expense = () => {
       });
   }, []);
 
-  // for caluculation
   useEffect(() => {
-    if (!isNaN(payment) && addedFriends.length > 0) {
-      setCalcPayment(
-        Math.floor((payment / (addedFriends.length + 1)) * 100) / 100
-      );
-    } else {
-      setCalcPayment(0);
-    }
+    setCalcPayment(calculateExpense(payment, addedFriends.length));
   }, [payment, addedFriends]);
-
-  const onSuggestionsClearRequested = () => {
-    setSuggestions([]);
-  };
-
-  const getSuggestions = (value: string): string[] => {
-    // change Friends[] to string[]
-    const changeTypeFriends = friends.map((friend) => friend.email);
-
-    return changeTypeFriends.filter((friend) => {
-      const lowerCasedFriend = friend.toLowerCase();
-      return lowerCasedFriend.startsWith(value.trim().toLowerCase());
-    });
-  };
-
-  const renderSuggestion = (suggestion: string) => {
-    return <span>{suggestion}</span>;
-  };
-
-  const getSuggestionValue = (suggestion: string) => {
-    setAddedFriends([...addedFriends, suggestion]);
-    return suggestion;
-  };
-
-  const deleteFriends = (value: string) => {
-    const index = addedFriends.indexOf(value);
-    if (index > -1) {
-      const newAddedFriends = [...addedFriends];
-      newAddedFriends.splice(index, 1);
-      setAddedFriends(newAddedFriends);
-    }
-  };
 
   const calculatePayment = (value: string) => {
     const newPayment = parseInt(value);
     setPayment(newPayment);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
     event.preventDefault();
     // validations
     const isPaymentValid = validatePayment(payment);
-    const isDescriptionValid = validateDescription(description);
+    const isDescriptionValid = isStringExist(description);
 
     if (!isPaymentValid) {
-      setPaymentError("Payment should be a number");
+      setPaymentError(PAYMENT_ERROR);
       isValid = false;
     } else {
-      setPaymentError("");
+      setPaymentError(EMPTY);
     }
 
     if (!isDescriptionValid) {
-      setDescriptionError("Description should be one or more characters");
+      setDescriptionError(DESCRIPTION_ERROR);
       isValid = false;
     } else {
-      setDescriptionError("");
+      setDescriptionError(EMPTY);
     }
 
     if (isValid) {
-      createGroup();
-      // saveUserExpense();
-      navigate("/expense");
+      const isRegisterSucceed = await createExpense();
+      if (isRegisterSucceed) {
+        handleInputReset();
+      }
     }
   };
 
   // ----------------------------------------------------------------
   // create a group and members and save an expense to a collection
   // ----------------------------------------------------------------
-  const createGroup = async () => {
+  const createExpense = async (): Promise<boolean> => {
     const group: Group = {
       group_name: "",
       email: userEmail,
@@ -163,20 +161,33 @@ export const Expense = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:3001/api/register/group", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(group),
-      });
+      const response = await fetch(
+        "http://localhost:3001/api/register/expense",
+        {
+          method: "POST",
+          mode: "cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(group),
+        }
+      );
 
       if (response.ok) {
-        alert("Registration successful");
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        setTimeout(() => {
+          navigate("/expense");
+        }, 1000);
+        return true;
       } else {
-        alert("Registration failed");
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
     }
   };
 
@@ -194,53 +205,46 @@ export const Expense = () => {
     setDescription(value);
   };
 
+  // for AutoSuggest
+  const handleGetFriends = (value: string) => {
+    setAddedFriends([...addedFriends, value]);
+    return value;
+  };
+  // for AutoSuggest
+  const handleDeleteFriends = (value: string) => {
+    const index = addedFriends.indexOf(value);
+    if (index > -1) {
+      const newAddedFriends = [...addedFriends];
+      newAddedFriends.splice(index, 1);
+      setAddedFriends(newAddedFriends);
+    }
+  };
+
+  const handleInputReset = () => {
+    setAddedFriends([]);
+    setDescription("");
+    setPayer(userEmail);
+    setPayment(0);
+    setCalcPayment(0);
+    setCategory(0);
+  };
+
   return (
     <>
       <Header />
       <MainContainer>
         <form onSubmit={handleSubmit} className="p-4">
-          <div>
-            <h3>Choose your expense-sharing partner:</h3>
-            <Autosuggest // ■ 古いため、エラー
-              suggestions={suggestions}
-              alwaysRenderSuggestions
-              onSuggestionsClearRequested={onSuggestionsClearRequested}
-              onSuggestionsFetchRequested={({ value }) => {
-                setsuggestionItem(value);
-                setSuggestions(getSuggestions(value));
-              }}
-              getSuggestionValue={getSuggestionValue}
-              renderSuggestion={renderSuggestion}
-              inputProps={{
-                placeholder: "Type Email address",
-                value: suggestionItem,
-                onChange: (_, { newValue }) => {
-                  setsuggestionItem(newValue);
-                },
-              }}
-              highlightFirstSuggestion={true}
-            />
-            {/* <div className="h-28 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1"> */}
-            <div className="h-10 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
-              {addedFriends.map((friend, index) => {
-                return (
-                  <span
-                    className="inline-block flex-none px-2 py-1 border border-gray-400 rounded-xl"
-                    key={index}
-                    onClick={() => deleteFriends(friend)}
-                  >
-                    {friend}
-                    <RxCross1 className="ml-1 inline text-xs" />
-                  </span>
-                );
-              })}
-            </div>
-          </div>
+          <AutoSuggest
+            friends={friends}
+            addedFriends={addedFriends}
+            handleGetFriends={handleGetFriends}
+            handleDeleteFriends={handleDeleteFriends}
+          />
           <div>
             <h3>Categories:</h3>
             <select
               id="categories"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-white border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5"
               onChange={handleCategoriesChange}
             >
               {categories.map((category) => {
@@ -281,7 +285,7 @@ export const Expense = () => {
             <h3>Payer:</h3>
             <select
               id="payers"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-white border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5"
               onChange={handleSelectChange}
             >
               <option value={userEmail}>you</option>
@@ -297,7 +301,8 @@ export const Expense = () => {
           <div>
             <h3>Divided expense:</h3>
             <h4>
-              {calcPayment}/person ({addedFriends.length + 1} people)
+              {calcPayment.toLocaleString()}/person ({addedFriends.length + 1}{" "}
+              people)
             </h4>
           </div>
           <Button
@@ -307,8 +312,10 @@ export const Expense = () => {
             hoverColor="hover:bg-amber-700"
             focusColor="focus:bg-amber-800"
             onClick={() => navigate("/expense")}
+            disabled={isDisabled}
           />
         </form>
+        {status !== "" ? <Snackbar type={status} message={message} /> : null}
       </MainContainer>
     </>
   );

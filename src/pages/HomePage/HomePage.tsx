@@ -18,9 +18,9 @@ export const HomePage = () => {
               marginRight: "0.5rem",
             }}
           />
-          SES
+          SED
         </h1>
-        <h2>SMART EXPENSE SAVER</h2>
+        <h2>SMART EXPENSE DEVIDER</h2>
         <div className="flex min-h-full items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-md space-y-8">
             <div>
