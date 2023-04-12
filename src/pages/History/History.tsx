@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Header } from "../../components/Header/Header";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
-import { formattedDate } from "../../utils/utils";
+import { formattedDateTime } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/AuthContext";
 
@@ -22,19 +22,19 @@ export interface UserHistory {
     name: string;
   }[];
   methods: {
-    method_order: Number;
+    method_order: number;
     method_name: string;
   };
   processes: {
-    process_status: Number;
+    process_status: number;
     process_name: string;
   };
   categories: {
-    category_order: Number;
+    category_order: number;
     category_name: string;
   };
   description: string;
-  payment: Number;
+  payment: number;
   registered_name: {
     email: string;
     name: string;
@@ -108,10 +108,10 @@ export const History = () => {
     <>
       <Header />
       <MainContainer>
-        <div className="flex flex-col min-h-full items-center justify-start py-12 px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col min-h-full items-center justify-start pt-12 pb-4 px-4 sm:px-6 lg:px-8">
           <div className="w-full max-w-md space-y-4">
             <h2>History</h2>
-            <div className="h-80 overflow-auto">
+            <div className="h-96 overflow-auto">
               {history.map((data, index) => {
                 const style = getStyle(data.payer.email, data.payer.name);
                 return (
@@ -120,14 +120,17 @@ export const History = () => {
                     className={`mb-2 border-2 rounded-lg ${style.borderColor} px-4 py-2 bg-white`}
                     onClick={() => handleModalOpen(data)}
                   >
-                    <div>{data.description}</div>
+                    <div className="font-medium text-lg">
+                      {data.description}
+                    </div>
                     <p className={`font-semibold ${style.textColor}`}>
-                      {style.payerName} paid {data.payment.toString()}{" "}
+                      {style.payerName} paid{" "}
+                      {data.payment.toLocaleString().toString()}{" "}
                       {data.group_name ? `at ${data.group_name}` : null}
                     </p>
-                    <div>
-                      <span className="pr-0.5">
-                        {formattedDate(data.registered_at)}
+                    <div className="text-sm">
+                      <span className="pr-3">
+                        {formattedDateTime(data.registered_at)}
                       </span>
                       <span className="pr-0.5">
                         added by{" "}

@@ -11,7 +11,7 @@ const port = 3001;
 const app = express();
 app.use(express.json());
 
-// cors対策
+// deal with cors
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
   res.setHeader(
@@ -231,7 +231,7 @@ app.post("/api/get/groups", async (req, res) => {
     const userId = await Users.findOne({ email: email })
 
     const groups = await Groups.aggregate([
-      { $sort: { group_name: 1 } },
+      { $sort: { registered_at: -1 } },
       {
         $match: {
           member_id: {

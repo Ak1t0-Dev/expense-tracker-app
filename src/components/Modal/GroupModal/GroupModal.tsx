@@ -98,31 +98,6 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
       members: addedFriends,
     };
 
-    //   try {
-    //     const response = await fetch("http://localhost:3001/api/exist/group", {
-    //       method: "POST",
-    //       mode: "cors",
-    //       headers: { "Content-Type": "application/json" },
-    //       body: JSON.stringify(group),
-    //     });
-
-    //     if (response.ok) {
-    //       setMessage(REGISTER_SUCCESSFUL);
-    //       setStatus(STATUS.SUCCESS);
-    //       return true;
-    //     } else {
-    //       setMessage(REGISTER_ERROR);
-    //       setStatus(STATUS.ERROR);
-    //       return false;
-    //     }
-    //   } catch (err) {
-    //     setMessage(CATCHED_ERROR);
-    //     setStatus(STATUS.ERROR);
-    //     console.error(err);
-    //     return false;
-    //   }
-    // };
-
     try {
       const response = await fetch("http://localhost:3001/api/register/group", {
         method: "POST",
@@ -173,23 +148,12 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
   return (
     <div
       id="small-modal"
-      className="fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] md:h-full"
+      className="fixed top-0 left-0 right-0 z-50 w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] md:h-full flex items-center justify-center"
     >
       <div className="relative w-full h-full max-w-md md:h-auto">
         <form onSubmit={handleSubmit} className="p-4">
-          <div className="relative bg-white rounded-lg shadow">
-            <div className="flex items-center justify-between p-5 border-b rounded-t">
-              <InputText
-                id="group"
-                title="Group name:"
-                name="group"
-                value={groupName}
-                onChange={handleGroupChange}
-                type="text"
-                autoComplete="off"
-                placeholder="Enter a group name"
-                error={groupNameError}
-              />
+          <div className="relative bg-white rounded-lg shadow border-2 border-black">
+            <div className="flex items-center justify-between pt-5 px-5 rounded-t">
               <button
                 type="button"
                 className="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
@@ -213,6 +177,17 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
               </button>
             </div>
             <div className="p-6 space-y-6">
+              <InputText
+                id="group"
+                title="Group name:"
+                name="group"
+                value={groupName}
+                onChange={handleGroupChange}
+                type="text"
+                autoComplete="off"
+                placeholder="Enter a group name"
+                error={groupNameError}
+              />
               <AutoSuggest
                 friends={friends}
                 addedFriends={addedFriends}
@@ -220,7 +195,7 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
                 handleDeleteFriends={handleDeleteFriends}
               />
             </div>
-            <div className="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600">
+            <div className="flex items-center p-6 space-x-2">
               <Button
                 name="SAVE"
                 textColor="text-amber-50"

@@ -5,7 +5,11 @@ module.exports = {
     extend: {
       dropShadow: {
         'dark': '0 4px 0 rgba(0, 0, 0, 0.4)',
+      },
+      height: {
+        'h-100': '28rem',
       }
+
     },
   },
   plugins: [],

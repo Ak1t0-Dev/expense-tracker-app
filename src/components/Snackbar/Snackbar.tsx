@@ -36,7 +36,7 @@ export const Snackbar = ({ type, message }: SnackbarProps) => {
   return (
     <div
       role="alert"
-      className={`mx-2 sm:mx-auto max-w-sm border ${style.borderColor} flex flex-row items-center justify-between bg-gray-50 shadow-lg p-3 text-sm leading-none font-medium rounded-xl whitespace-no-wrap`}
+      className={`absolute bottom-32 left-20 mx-2 sm:mx-auto max-w-sm border ${style.borderColor} flex flex-row items-center justify-between bg-gray-50 shadow-lg p-3 text-sm leading-none font-medium rounded-xl whitespace-no-wrap`}
     >
       <div className={`inline-flex items-center ${style.textColor}`}>
         <svg

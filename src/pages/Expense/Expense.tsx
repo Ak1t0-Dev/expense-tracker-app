@@ -3,7 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Header/Header";
 import { InputText } from "../../components/InputText/InputText";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
-import { validatePayment, isStringExist } from "../../utils/utils";
+import {
+  validatePayment,
+  isStringExist,
+  calculateExpense,
+} from "../../utils/utils";
 import { AutoSuggest } from "../../components/AutoSugggest/AutoSuggest";
 import { Button } from "../../components/Button/Button";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
@@ -102,15 +106,8 @@ export const Expense = () => {
       });
   }, []);
 
-  // for caluculation
   useEffect(() => {
-    if (!isNaN(payment) && addedFriends.length > 0) {
-      setCalcPayment(
-        Math.floor((payment / (addedFriends.length + 1)) * 100) / 100
-      );
-    } else {
-      setCalcPayment(0);
-    }
+    setCalcPayment(calculateExpense(payment, addedFriends.length));
   }, [payment, addedFriends]);
 
   const calculatePayment = (value: string) => {
@@ -247,7 +244,7 @@ export const Expense = () => {
             <h3>Categories:</h3>
             <select
               id="categories"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-white border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5"
               onChange={handleCategoriesChange}
             >
               {categories.map((category) => {
@@ -288,7 +285,7 @@ export const Expense = () => {
             <h3>Payer:</h3>
             <select
               id="payers"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+              className="bg-white border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5"
               onChange={handleSelectChange}
             >
               <option value={userEmail}>you</option>
@@ -304,7 +301,8 @@ export const Expense = () => {
           <div>
             <h3>Divided expense:</h3>
             <h4>
-              {calcPayment}/person ({addedFriends.length + 1} people)
+              {calcPayment.toLocaleString()}/person ({addedFriends.length + 1}{" "}
+              people)
             </h4>
           </div>
           <Button

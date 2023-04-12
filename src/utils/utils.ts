@@ -84,3 +84,22 @@ export const validateLength = (
 export const formattedDate = (date: Date): String => {
   return date.toLocaleString().substring(0, 10);
 };
+
+// ----------------------------------------------------------------
+// substring a date (YYYY-MM-DD HH:MM)
+// ----------------------------------------------------------------
+export const formattedDateTime = (date: Date): String => {
+  return (
+    date.toLocaleString().substring(0, 10) +
+    " at " +
+    date.toLocaleString().substring(11, 16)
+  );
+};
+
+export const calculateExpense = (payment: number, members: number): number => {
+  let result = 0;
+  if (!isNaN(payment) && members > 0) {
+    result = Math.floor((payment / (members + 1)) * 100) / 100;
+  }
+  return result;
+};

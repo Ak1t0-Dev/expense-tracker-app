@@ -60,7 +60,7 @@ export const AutoSuggest = ({
         highlightFirstSuggestion={true}
       />
       {/* <div className="h-28 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1"> */}
-      <div className="h-10 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
+      <div className="h-12 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
         {addedFriends.map((friend, index) => {
           return (
             <span
