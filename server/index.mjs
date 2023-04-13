@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 import { ObjectId } from 'bson';
 // use for expense
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
 
-// put the information in the env file
-const uri = 'mongodb+srv://admin001:Adm1n001@cluster0.7hck5vk.mongodb.net/expense-tracker-db?retryWrites=true&w=majority';
+dotenv.config();
+const url = process.env.DB_URL;
 const port = 3001;
 
 const app = express();
@@ -22,7 +23,7 @@ app.use((req, res, next) => {
   next();
 });
 
-mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error(err));
 
