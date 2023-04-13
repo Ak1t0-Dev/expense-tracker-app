@@ -9,15 +9,14 @@ interface ModalProps {
 export const HistoryModal = ({ onClose, data }: ModalProps) => {
   // for assigning a user email from the local storage
   const userEmail = localStorage.getItem("expense-tracker") || "";
-  const getStyle = (email: string, payer: string) => {
+  const getStyle = (email: string, payer: string, payment: number) => {
     if (userEmail === email) {
       return {
         borderColor: "border-green-700",
         textColor: "text-green-700",
         bgColor: "bg-green-50",
         payerName: "You",
-        text: "You paid",
-        bool: true,
+        text: `You paid ${payment.toLocaleString()}.`,
       };
     } else {
       return {
@@ -25,8 +24,7 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
         textColor: "text-blue-700",
         bgColor: "bg-blue-50",
         payerName: payer,
-        text: "You owed",
-        bool: false,
+        text: `You owed ${expense} from ${payer}.`,
       };
     }
   };
@@ -39,7 +37,8 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
     data.payment,
     data.members.length - 1
   ).toLocaleString();
-  const style = getStyle(data.payer.email, data.payer.name);
+
+  const style = getStyle(data.payer.email, data.payer.name, data.payment);
 
   return (
     <div
@@ -124,10 +123,7 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
               {data.payment.toLocaleString().toString()}
             </div>
             <div className="text-base">
-              <p className={`${style.textColor} font-semibold`}>
-                {style.text}{" "}
-                {style.bool ? data.payment.toLocaleString() : expense}
-              </p>
+              <p className={`${style.textColor} font-semibold`}>{style.text}</p>
             </div>
           </div>
         </div>
