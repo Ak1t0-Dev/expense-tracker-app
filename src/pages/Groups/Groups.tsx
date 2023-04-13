@@ -6,6 +6,13 @@ import { GroupModal } from "../../components/Modal/GroupModal/GroupModal";
 import { formattedDate } from "../../utils/utils";
 import AuthContext from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { STATUS } from "../../constants/constants";
+import {
+  CATCHED_ERROR,
+  REGISTER_ERROR,
+  REGISTER_SUCCESSFUL,
+} from "../../constants/message";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
 
 interface UserGroups {
   uuid: string;
@@ -20,9 +27,41 @@ export const Groups = () => {
   const userEmail = localStorage.getItem("expense-tracker") || "";
   const [groups, setGroups] = useState<UserGroups[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AuthContext);
+
+  const fetchedGroupsData = async (email: string) => {
+    try {
+      const response = await fetch("http://localhost:3001/api/get/groups", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setGroups(data);
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        return true;
+      } else {
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -31,21 +70,7 @@ export const Groups = () => {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    const postUser = {
-      email: userEmail,
-    };
-    fetch("http://localhost:3001/api/get/groups", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postUser),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setGroups(data);
-      });
+    fetchedGroupsData(userEmail);
   }, [userEmail]);
 
   const handleModalOpen = () => {
@@ -89,9 +114,14 @@ export const Groups = () => {
             </div>
           </div>
           {isModalOpen ? (
-            <GroupModal onClose={handleModalClose} userEmail={userEmail} />
+            <GroupModal
+              onClose={handleModalClose}
+              userEmail={userEmail}
+              fetchedGroupsData={() => fetchedGroupsData(userEmail)}
+            />
           ) : null}
         </div>
+        {status !== "" ? <Snackbar type={status} message={message} /> : null}
       </MainContainer>
     </>
   );
