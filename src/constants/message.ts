@@ -1,6 +1,6 @@
 // messages
 export const EMPTY = "";
-export const NAME_INVALID = "Please enter a valid email address.";
+export const NAME_INVALID = "Please enter a valid name.";
 export const EMAIL_INVALID = "Please enter a valid email address.";
 export const EMAIL_EXISTS =
   "The email address has already existed. Try another email address.";
@@ -18,6 +18,7 @@ export const DESCRIPTION_ERROR =
   "Description should be one or more characters.";
 export const GROUP_NAME_LENGTH =
   "Group name must be between {min} and {max} characters long.";
+export const RETRIEVED_ERROR = "Failed to retrieve data from the server.";
 // placeholders
 export const ENTER_USERNAME = "Enter your user name";
 export const ENTER_EMAIL = "Enter your email address";

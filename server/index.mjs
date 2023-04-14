@@ -388,8 +388,42 @@ app.post('/api/register/user', async (req, res) => {
 
   try {
     const result = await newUser.save();
-    console.log(`Inserted user with id ${result._id}`);
     res.json(result);
+
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// ----------------------------------------------------------------------------
+//  update a user data
+// ----------------------------------------------------------------------------
+app.post('/api/update/user', async (req, res) => {
+  const currentEmail = req.body.currentEmail;
+  const name = req.body.name;
+  const email = req.body.email;
+  const password = req.body.password;
+
+  try {
+    const userData = await Users.findOneAndUpdate(
+      { email: currentEmail },
+      {
+        $set:
+        {
+          name: name,
+          email: email,
+          password: password
+        }
+      },
+      {
+        new: true
+      }
+
+    )
+
+    console.error(userData);
+    res.json(userData);
 
   } catch (err) {
     console.error(err);
