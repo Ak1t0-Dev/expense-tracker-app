@@ -46,40 +46,9 @@ export const Register = () => {
     confirmPassword.trim() === "";
   let isValid = true;
 
-  // ----------------------------------------------------------------
-  // check an email address if it has already existed in a collection
-  // ----------------------------------------------------------------
-  // const validateEmailExist = async (): Promise<boolean> => {
-  //   return await fetch("http://localhost:3001/api/user/exist", {
-  //     method: "POST",
-  //     mode: "cors",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ email: email }),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       if (data === 0) {
-  //         return true;
-  //       } else if (data > 0) {
-  //         setEmailError(EMAIL_EXISTS);
-  //         return false;
-  //       } else {
-  //         setMessage(REGISTER_ERROR);
-  //         setStatus(STATUS.ERROR);
-  //         return false;
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //       setMessage(CATCHED_ERROR);
-  //       setStatus(STATUS.ERROR);
-  //       return false;
-  //     });
-  // };
-
   const validateEmailExist = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/user/exist", {
+      const response = await fetch("http://localhost:3001/api/exist/user", {
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "application/json" },

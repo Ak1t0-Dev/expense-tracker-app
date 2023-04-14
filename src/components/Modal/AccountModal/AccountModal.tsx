@@ -51,7 +51,7 @@ export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
   // ----------------------------------------------------------------
   const validateEmailExist = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/user/exist", {
+      const response = await fetch("http://localhost:3001/api/exist/user", {
         method: "POST",
         mode: "cors",
         headers: { "Content-Type": "application/json" },

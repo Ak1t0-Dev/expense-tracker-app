@@ -63,7 +63,7 @@ export const History = () => {
     const user: User = {
       email: userEmail,
     };
-    fetch("http://localhost:3001/api/history", {
+    fetch("http://localhost:3001/api/get/history", {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },

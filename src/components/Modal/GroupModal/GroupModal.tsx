@@ -133,7 +133,7 @@ export const GroupModal = ({
 
   const fetchFriendsData = async (email: string) => {
     try {
-      const response = await fetch("http://localhost:3001/api/friends", {
+      const response = await fetch("http://localhost:3001/api/get/friends", {
         method: "POST",
         mode: "cors",
         headers: {

@@ -27,6 +27,11 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error(err));
 
+
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
+});
+
 // users config
 const usersSchema = new mongoose.Schema({
   email: { type: String, required: true },
@@ -53,7 +58,7 @@ const categoriesSchema = new mongoose.Schema({
 
 const Categories = mongoose.model('categories', categoriesSchema);
 
-// method config
+// methods config
 const methodsSchema = new mongoose.Schema({
   _id: { type: ObjectId, required: true },
   method_order: { type: Number, required: true },
@@ -71,7 +76,7 @@ const processesSchema = new mongoose.Schema({
 
 const Processes = mongoose.model('process', processesSchema);
 
-// group config
+// groups config
 const groupsSchema = new mongoose.Schema({
   uuid: { type: String, required: true, unique: true },
   group_name: { type: String },
@@ -84,7 +89,7 @@ const groupsSchema = new mongoose.Schema({
 
 const Groups = mongoose.model('groups', groupsSchema);
 
-// expense config
+// expenses config
 const expensesSchema = new mongoose.Schema({
   uuid: { type: String, required: true, unique: true },
   payer_id: { type: ObjectId, required: true },
@@ -125,11 +130,12 @@ const createGroup = async (userData) => {
     updated_id: resultUser._id, // need to modify
     updated_at: userData.date, // need to modify
   })
-
-  console.log("newGroup", newGroup);
   return await newGroup.save();
 }
 
+// ----------------------------------------------------------------------------
+//  regsiter an expense
+// ----------------------------------------------------------------------------
 app.post('/api/register/expense', async (req, res) => {
 
   const userData = {
@@ -143,9 +149,7 @@ app.post('/api/register/expense', async (req, res) => {
   try {
     const resultGroup = await createGroup(userData);
 
-    // ----------------------------------------------------------------------------
     //  create an expense
-    // ----------------------------------------------------------------------------
     const categoryOrder = req.body.category_order;
     const methodOrder = req.body.method_order;
     const processStatus = req.body.process_status;
@@ -172,8 +176,6 @@ app.post('/api/register/expense', async (req, res) => {
     );
 
     const resultExpense = await newExpenses.save();
-
-    console.log(resultExpense);
     res.json(resultExpense);
 
   } catch (err) {
@@ -182,7 +184,10 @@ app.post('/api/register/expense', async (req, res) => {
   }
 });
 
-app.post("/api/friends", async (req, res) => {
+// ----------------------------------------------------------------------------
+//  get friends
+// ----------------------------------------------------------------------------
+app.post("/api/get/friends", async (req, res) => {
   const email = req.body.email;
   console.log(email);
   try {
@@ -196,8 +201,6 @@ app.post("/api/friends", async (req, res) => {
     const users = await Users.find({ _id: { $in: friendIds } },
       // { email: 1, name: 1, password: 0, _id: 0 }); why it gets an error?
       { email: 1, name: 1, _id: 0 });
-    console.log(friendIds);
-    console.log(users);
     res.json(users);
 
   } catch (err) {
@@ -206,6 +209,9 @@ app.post("/api/friends", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+//  register a group
+// ----------------------------------------------------------------------------
 app.post("/api/register/group", async (req, res) => {
   const userData = {
     uuid: uuidv4(),
@@ -216,7 +222,6 @@ app.post("/api/register/group", async (req, res) => {
   }
   try {
     const resultGroup = await createGroup(userData);
-    console.log(resultGroup);
     res.json(resultGroup);
   } catch (err) {
     console.error(err);
@@ -224,6 +229,9 @@ app.post("/api/register/group", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+//  get groups
+// ----------------------------------------------------------------------------
 app.post("/api/get/groups", async (req, res) => {
   const email = req.body.email;
 
@@ -272,6 +280,9 @@ app.post("/api/get/groups", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+//  get categories
+// ----------------------------------------------------------------------------
 app.get("/api/get/categories", async (req, res) => {
   try {
     const categories = await Categories.find({},
@@ -285,7 +296,10 @@ app.get("/api/get/categories", async (req, res) => {
   }
 });
 
-app.post("/api/user/exist", async (req, res) => {
+// ----------------------------------------------------------------------------
+//  check if a user exist
+// ----------------------------------------------------------------------------
+app.post("/api/exist/user", async (req, res) => {
   const email = req.body.email;
   try {
     const users = await Users.countDocuments({
@@ -300,6 +314,9 @@ app.post("/api/user/exist", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+//  check an user's email and password
+// ----------------------------------------------------------------------------
 app.post("/api/login", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
@@ -317,6 +334,9 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+//  get a user data
+// ----------------------------------------------------------------------------
 app.post("/api/get/user", async (req, res) => {
   const email = req.body.email;
 
@@ -339,7 +359,9 @@ app.post("/api/get/user", async (req, res) => {
   }
 });
 
-
+// ----------------------------------------------------------------------------
+//  get a userId
+// ----------------------------------------------------------------------------
 app.post("/api/get/userId", async (req, res) => {
   const email = req.body.email;
   try {
@@ -354,6 +376,9 @@ app.post("/api/get/userId", async (req, res) => {
   }
 });
 
+// ----------------------------------------------------------------------------
+//  register a user data
+// ----------------------------------------------------------------------------
 app.post('/api/register/user', async (req, res) => {
   const newUser = new Users({
     name: req.body.userName,
@@ -372,7 +397,10 @@ app.post('/api/register/user', async (req, res) => {
   }
 });
 
-app.post("/api/history", async (req, res) => {
+// ----------------------------------------------------------------------------
+//  get a user history
+// ----------------------------------------------------------------------------
+app.post("/api/get/history", async (req, res) => {
   const email = req.body.email;
   try {
 
@@ -517,8 +545,4 @@ app.post("/api/history", async (req, res) => {
     console.error(err);
     res.sendStatus(500);
   }
-});
-
-app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
 });

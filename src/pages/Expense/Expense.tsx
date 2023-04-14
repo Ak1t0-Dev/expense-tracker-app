@@ -83,7 +83,7 @@ export const Expense = () => {
     const postUser = {
       email: userEmail,
     };
-    fetch("http://localhost:3001/api/friends", {
+    fetch("http://localhost:3001/api/get/friends", {
       method: "POST",
       mode: "cors",
       headers: {
