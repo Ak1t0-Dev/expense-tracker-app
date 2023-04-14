@@ -17,6 +17,7 @@ import { STATUS } from "../../../constants/constants";
 interface ModalProps {
   onClose: () => void;
   userEmail: string;
+  fetchedGroupsData: (email: string) => Promise<boolean>;
 }
 
 interface Group {
@@ -25,13 +26,18 @@ interface Group {
   members: string[];
 }
 
-export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
+export const GroupModal = ({
+  onClose,
+  userEmail,
+  fetchedGroupsData,
+}: ModalProps) => {
   const [groupName, setGroupName] = useState("");
   const [groupNameError, setGroupNameError] = useState("");
   const [friends, setFriends] = useState<Friends[]>([]);
   const [addedFriends, setAddedFriends] = useState<string[]>([]);
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
+
   // to disable a button
   const min = 1;
   const max = 50;
@@ -54,6 +60,8 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
       const isGroupRegistered = await createGroup();
       if (isGroupRegistered) {
         handleInputReset();
+        onClose();
+        fetchedGroupsData(userEmail);
       }
     }
   };
@@ -123,22 +131,37 @@ export const GroupModal = ({ onClose, userEmail }: ModalProps) => {
     }
   };
 
-  useEffect(() => {
-    const postUser = {
-      email: userEmail,
-    };
-    fetch("http://localhost:3001/api/friends", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postUser),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setFriends(data);
+  const fetchFriendsData = async (email: string) => {
+    try {
+      const response = await fetch("http://localhost:3001/api/friends", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: email }),
       });
+      if (response.ok) {
+        const data = await response.json();
+        setFriends(data);
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        return true;
+      } else {
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchFriendsData(userEmail);
   }, [userEmail]);
 
   if (!userEmail) {

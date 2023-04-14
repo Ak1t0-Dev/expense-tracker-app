@@ -7,6 +7,10 @@ import {
   PASSWORD_INVALID,
   EMPTY,
   NAME_INVALID,
+  REGISTER_ERROR,
+  REGISTER_SUCCESSFUL,
+  CATCHED_ERROR,
+  EMAIL_EXISTS,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 import {
@@ -43,28 +47,37 @@ export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
 
   // ----------------------------------------------------------------
   // check an email address if it has already existed in a collection
+  // (also is used in a register page)
   // ----------------------------------------------------------------
-  const validateEmailExist = async (): Promise<boolean> => {
-    return await fetch("http://localhost:3001/api/user/exist", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: email }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.count > 0) {
-          console.log("The email address has already existed.");
+  const validateEmailExist = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/api/user/exist", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data > 0) {
+          setEmailError(EMAIL_EXISTS);
           return false;
         } else {
-          alert("Registration successful");
+          setMessage(REGISTER_SUCCESSFUL);
+          setStatus(STATUS.SUCCESS);
           return true;
         }
-      })
-      .catch((error) => {
-        console.error(error);
-        return false;
-      });
+      } else {
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
   };
 
   // ----------------------------------------------------------------
