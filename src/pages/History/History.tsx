@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Header } from "../../components/Header/Header";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
-import { formattedDateTime } from "../../utils/utils";
+import { formattedDate } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/AuthContext";
 
@@ -130,7 +130,7 @@ export const History = () => {
                     </p>
                     <div className="text-sm">
                       <span className="pr-3">
-                        {formattedDateTime(data.registered_at)}
+                        {formattedDate(data.registered_at, "time")}
                       </span>
                       <span className="pr-0.5">
                         added by{" "}

@@ -1,3 +1,13 @@
+import moment from "moment-timezone";
+import {
+  CATCHED_ERROR,
+  EMAIL_EXISTS,
+  REGISTER_ERROR,
+  REGISTER_SUCCESSFUL,
+} from "../constants/message";
+import { STATUS } from "../constants/constants";
+// import 'moment-timezone/builds/moment-timezone-with-data-2012-2022';
+
 // ----------------------------------------------------------------
 // an email address validation
 // ----------------------------------------------------------------
@@ -78,28 +88,72 @@ export const validateLength = (
   }
 };
 
-// ----------------------------------------------------------------
-// substring a date (YYYY-MM-DD)
-// ----------------------------------------------------------------
-export const formattedDate = (date: Date): String => {
-  return date.toLocaleString().substring(0, 10);
-};
-
-// ----------------------------------------------------------------
-// substring a date (YYYY-MM-DD HH:MM)
-// ----------------------------------------------------------------
-export const formattedDateTime = (date: Date): String => {
-  return (
-    date.toLocaleString().substring(0, 10) +
-    " at " +
-    date.toLocaleString().substring(11, 16)
-  );
-};
-
 export const calculateExpense = (payment: number, members: number): number => {
   let result = 0;
   if (!isNaN(payment) && members > 0) {
     result = Math.floor((payment / (members + 1)) * 100) / 100;
   }
   return result;
+};
+
+export const formattedDate = (date: Date, format: string): string => {
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const localDate = moment.utc(date).tz(timezone).format();
+  // substring a date (YYYY-MM-DD HH:MM)
+  if (format === "time") {
+    return (
+      localDate.toLocaleString().substring(0, 10) +
+      " at " +
+      localDate.toLocaleString().substring(11, 16)
+    );
+    // substring a date (YYYY-MM-DD)
+  } else {
+    return localDate.toLocaleString().substring(0, 10);
+  }
+};
+
+// ----------------------------------------------------------------
+// check an email address if it has already existed in a collection
+// ----------------------------------------------------------------
+interface validateEmailProps {
+  email: string;
+  setEmailError: (value: string) => void;
+  setMessage: (value: string) => void;
+  setStatus: (value: STATUS) => void;
+}
+export const validateEmailExist = async ({
+  email,
+  setEmailError,
+  setMessage,
+  setStatus,
+}: validateEmailProps): Promise<boolean> => {
+  try {
+    const response = await fetch("http://localhost:3001/api/exist/user", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data > 0) {
+        setEmailError(EMAIL_EXISTS);
+        return false;
+      } else {
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        return true;
+      }
+    } else {
+      setMessage(REGISTER_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
+  } catch (error) {
+    console.log(error);
+    setMessage(CATCHED_ERROR);
+    setStatus(STATUS.ERROR);
+    return false;
+  }
 };

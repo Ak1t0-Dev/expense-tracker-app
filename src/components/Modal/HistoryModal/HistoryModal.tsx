@@ -1,5 +1,5 @@
 import { UserHistory } from "../../../pages/History/History";
-import { calculateExpense, formattedDateTime } from "../../../utils/utils";
+import { calculateExpense, formattedDate } from "../../../utils/utils";
 
 interface ModalProps {
   onClose: () => void;
@@ -78,7 +78,7 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
             </div>
             <h5 className="text-sm px-5 py-1">
               <span className="pr-3">
-                {formattedDateTime(data.registered_at)}
+                {formattedDate(data.registered_at, "time")}
               </span>
               <span className="pr-0.5">
                 added by{" "}

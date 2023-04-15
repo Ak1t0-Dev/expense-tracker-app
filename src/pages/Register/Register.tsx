@@ -8,10 +8,10 @@ import {
   validatePassword,
   validateMatchPassword,
   isStringExist,
+  validateEmailExist,
 } from "../../utils/utils";
 import {
   CATCHED_ERROR,
-  EMAIL_EXISTS,
   EMAIL_INVALID,
   EMPTY,
   ENTER_EMAIL,
@@ -46,36 +46,6 @@ export const Register = () => {
     confirmPassword.trim() === "";
   let isValid = true;
 
-  const validateEmailExist = async () => {
-    try {
-      const response = await fetch("http://localhost:3001/api/exist/user", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data > 0) {
-          setEmailError(EMAIL_EXISTS);
-          return false;
-        } else {
-          setMessage(REGISTER_SUCCESSFUL);
-          setStatus(STATUS.SUCCESS);
-          return true;
-        }
-      } else {
-        setMessage(REGISTER_ERROR);
-        setStatus(STATUS.ERROR);
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage(CATCHED_ERROR);
-      setStatus(STATUS.ERROR);
-      return false;
-    }
-  };
   // ----------------------------------------------------------------
   // register a user data to a database
   // ----------------------------------------------------------------
@@ -152,7 +122,12 @@ export const Register = () => {
     }
 
     if (isValid) {
-      const isEmailExist = await validateEmailExist();
+      const isEmailExist = await validateEmailExist({
+        email,
+        setEmailError,
+        setMessage,
+        setStatus,
+      });
       if (isEmailExist) await registerUserData();
     }
   };

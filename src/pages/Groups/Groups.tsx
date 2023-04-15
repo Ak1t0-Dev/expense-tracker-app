@@ -97,7 +97,7 @@ export const Groups = () => {
                   <span className="inline-block">{group.group_name}</span>
                   <span className="inline-block">{group.registered_name}</span>
                   <span className="inline-block">
-                    {formattedDate(group.registered_at)}
+                    {formattedDate(group.registered_at, "")}
                   </span>
                 </div>
               ))}
