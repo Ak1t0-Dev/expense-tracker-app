@@ -125,7 +125,7 @@ export const Expense = () => {
       fieldName: "Desicription",
       min: 1,
       max: 50,
-      setFieldError: setDescriptionError,
+      fieldError: setDescriptionError,
     });
 
     if (!isPaymentValid) {

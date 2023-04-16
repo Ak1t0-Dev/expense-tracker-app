@@ -43,12 +43,12 @@ export const GroupModal = ({
     let isValid = true;
     event.preventDefault();
     // validations
-    validateLength({
+    isValid = validateLength({
       target: groupName,
       fieldName: "User name",
       min: 1,
       max: 30,
-      setFieldError: setGroupNameError,
+      fieldError: setGroupNameError,
     });
 
     if (isValid) {

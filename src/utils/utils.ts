@@ -8,7 +8,6 @@ import {
   getInputLengthMessage,
 } from "../constants/message";
 import { STATUS } from "../constants/constants";
-// import 'moment-timezone/builds/moment-timezone-with-data-2012-2022';
 
 // ----------------------------------------------------------------
 // an email address validation
@@ -63,27 +62,27 @@ export const validatePayment = (payment: number): boolean => {
 // ----------------------------------------------------------------
 // string length check
 // ----------------------------------------------------------------
-export interface validateLengthProps<T> {
+export interface validateLengthProps {
   target: string;
   fieldName: string;
   min: number;
   max: number;
-  setFieldError: (value: T) => void;
+  fieldError: (value: string) => void;
 }
-export const validateLength = <T extends string>({
+export const validateLength = ({
   target,
   fieldName,
   min,
   max,
-  setFieldError,
-}: validateLengthProps<T>): boolean => {
+  fieldError,
+}: validateLengthProps): boolean => {
   const minLength = min;
   const maxLength = max;
   if (target.length < minLength || target.length > maxLength) {
-    setFieldError(getInputLengthMessage(fieldName, min, max) as T);
+    fieldError(getInputLengthMessage(fieldName, min, max));
     return false;
   } else {
-    setFieldError(EMPTY as T);
+    fieldError(EMPTY);
     return true;
   }
 };

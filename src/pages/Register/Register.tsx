@@ -96,7 +96,7 @@ export const Register = () => {
       fieldName: "user name",
       min: 1,
       max: 20,
-      setFieldError: setUserNameError,
+      fieldError: setUserNameError,
     });
 
     if (!isEmailValid) {

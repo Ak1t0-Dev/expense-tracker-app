@@ -21,6 +21,8 @@ export const RETRIEVED_ERROR = "Failed to retrieve data from the server.";
 export const ENTER_USERNAME = "Enter your user name";
 export const ENTER_EMAIL = "Enter your email address";
 export const ENTER_PASSWORD = "Enter your password";
+export const ENTER_NEW_PASSWORD = "Enter a new password";
+export const ENTER_FRIENDS_EMAIL = "Search your friends";
 
 // dynamic messages
 export const getInputLengthMessage = (

@@ -9,6 +9,7 @@ import {
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
   CATCHED_ERROR,
+  ENTER_NEW_PASSWORD,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 import {
@@ -54,7 +55,6 @@ export const AccountModal = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
-    // const isUserNameValid = validateLength(userName, "User name", 1, 20);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(newPassword);
 
@@ -63,7 +63,7 @@ export const AccountModal = ({
       fieldName: "User name",
       min: 1,
       max: 20,
-      setFieldError: setUserNameError,
+      fieldError: setUserNameError,
     });
 
     if (!isEmailValid) {
@@ -198,13 +198,13 @@ export const AccountModal = ({
                 {/* password input component */}
                 <InputText
                   id="password"
-                  title="Password"
+                  title="New Password"
                   name="password"
                   value={newPassword}
                   onChange={setNewPassword}
                   type="password"
                   autoComplete="current-password"
-                  placeholder="Enter your password"
+                  placeholder={ENTER_NEW_PASSWORD}
                   error={newPasswordError}
                 />
                 <Button
