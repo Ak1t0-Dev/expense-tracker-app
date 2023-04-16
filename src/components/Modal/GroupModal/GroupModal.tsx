@@ -151,7 +151,7 @@ export const GroupModal = ({
   }, [userEmail]);
 
   if (!userEmail) {
-    return null; // if userEmail is null or undefined, don't render the modal
+    return null;
   }
 
   return (
@@ -217,7 +217,7 @@ export const GroupModal = ({
           </div>
         </form>
       </div>
-      {status !== "" ? <Snackbar type={status} message={message} /> : null}
+      {status !== "" && <Snackbar type={status} message={message} />}
     </div>
   );
 };

@@ -98,7 +98,7 @@ export const HistoryModal = ({ onClose, data }: ModalProps) => {
                 <span className="inline-block">{data.payer.email}</span>
               </div>
             </div>
-            {data.group_name === "" ? null : (
+            {data.group_name !== "" && (
               <div className="text-base">{data.group_name}</div>
             )}
             <div className="">

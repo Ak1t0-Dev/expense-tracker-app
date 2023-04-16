@@ -70,10 +70,6 @@ export const Acccount = () => {
     setIsModalOpen(false);
   };
 
-  if (!user) {
-    return null; // if userEmail is null or undefined, don't render the modal
-  }
-
   return (
     <>
       <Header />
@@ -100,15 +96,15 @@ export const Acccount = () => {
               onClick={handleModalOpen}
             />
           </div>
-          {isModalOpen ? (
+          {user && isModalOpen && (
             <AccountModal
               onClose={handleModalClose}
               user={user}
               currentEmail={userEmail}
               fetchedUserData={fetchedUserData}
             />
-          ) : null}
-          {status !== "" ? <Snackbar type={status} message={message} /> : null}
+          )}
+          {status !== "" && <Snackbar type={status} message={message} />}
         </div>
       </MainContainer>
     </>

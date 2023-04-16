@@ -107,15 +107,15 @@ export const Groups = () => {
               />
             </div>
           </div>
-          {isModalOpen ? (
+          {isModalOpen && (
             <GroupModal
               onClose={handleModalClose}
               userEmail={userEmail}
               fetchedGroupsData={() => fetchedGroupsData(userEmail)}
             />
-          ) : null}
+          )}
         </div>
-        {status !== "" ? <Snackbar type={status} message={message} /> : null}
+        {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>
   );

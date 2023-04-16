@@ -204,7 +204,7 @@ export const Register = () => {
             </form>
           </div>
         </div>
-        {status !== "" ? <Snackbar type={status} message={message} /> : null}
+        {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>
   );

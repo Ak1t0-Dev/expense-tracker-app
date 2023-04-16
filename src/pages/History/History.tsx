@@ -126,7 +126,7 @@ export const History = () => {
                     <p className={`font-semibold ${style.textColor}`}>
                       {style.payerName} paid{" "}
                       {data.payment.toLocaleString().toString()}{" "}
-                      {data.group_name ? `at ${data.group_name}` : null}
+                      {data.group_name && `at ${data.group_name}`}
                     </p>
                     <div className="text-sm">
                       <span className="pr-3">
@@ -144,9 +144,9 @@ export const History = () => {
               })}
             </div>
           </div>
-          {isModalOpen ? (
+          {isModalOpen && (
             <HistoryModal onClose={handleModalClose} data={selectedHistory} />
-          ) : null}
+          )}
         </div>
       </MainContainer>
     </>
