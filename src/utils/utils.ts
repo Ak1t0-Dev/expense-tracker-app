@@ -2,8 +2,10 @@ import moment from "moment-timezone";
 import {
   CATCHED_ERROR,
   EMAIL_EXISTS,
+  EMPTY,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
+  getInputLengthMessage,
 } from "../constants/message";
 import { STATUS } from "../constants/constants";
 // import 'moment-timezone/builds/moment-timezone-with-data-2012-2022';
@@ -59,35 +61,36 @@ export const validatePayment = (payment: number): boolean => {
 };
 
 // ----------------------------------------------------------------
-// string exist check
-// ----------------------------------------------------------------
-export const isStringExist = (description: string): boolean => {
-  const regex = /^\w+$/;
-  if (!regex.test(description)) {
-    return false;
-  } else {
-    return true;
-  }
-};
-
-// ----------------------------------------------------------------
 // string length check
 // ----------------------------------------------------------------
-export const validateLength = (
-  value: string,
-  min: number,
-  max: number
-): boolean => {
+export interface validateLengthProps<T> {
+  target: string;
+  fieldName: string;
+  min: number;
+  max: number;
+  setFieldError: (value: T) => void;
+}
+export const validateLength = <T extends string>({
+  target,
+  fieldName,
+  min,
+  max,
+  setFieldError,
+}: validateLengthProps<T>): boolean => {
   const minLength = min;
   const maxLength = max;
-  if (value.length < minLength || value.length > maxLength) {
+  if (target.length < minLength || target.length > maxLength) {
+    setFieldError(getInputLengthMessage(fieldName, min, max) as T);
     return false;
   } else {
-    // set the input value to the state variable
+    setFieldError(EMPTY as T);
     return true;
   }
 };
 
+// ----------------------------------------------------------------
+// dived an expense equally
+// ----------------------------------------------------------------
 export const calculateExpense = (payment: number, members: number): number => {
   let result = 0;
   if (!isNaN(payment) && members > 0) {

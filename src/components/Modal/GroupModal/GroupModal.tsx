@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
 import { InputText } from "../../InputText/InputText";
-import { isStringExist, validateLength } from "../../../utils/utils";
+import { validateLength } from "../../../utils/utils";
 import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Friends } from "../../../pages/Expense/Expense";
 import { Button } from "../../Button/Button";
 import { Snackbar } from "../../Snackbar/Snackbar";
 import {
   CATCHED_ERROR,
-  EMPTY,
-  GROUP_NAME_LENGTH,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
 } from "../../../constants/message";
@@ -39,22 +37,19 @@ export const GroupModal = ({
   const [message, setMessage] = useState("");
 
   // to disable a button
-  const min = 1;
-  const max = 50;
   const isDisabled = groupName.trim() === "" || addedFriends.length === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
     event.preventDefault();
     // validations
-    const isGroupNameValid = isStringExist(groupName);
-
-    if (!isGroupNameValid) {
-      setGroupNameError(GROUP_NAME_LENGTH);
-      isValid = false;
-    } else {
-      setGroupNameError(EMPTY);
-    }
+    validateLength({
+      target: groupName,
+      fieldName: "User name",
+      min: 1,
+      max: 30,
+      setFieldError: setGroupNameError,
+    });
 
     if (isValid) {
       const isGroupRegistered = await createGroup();
@@ -71,15 +66,15 @@ export const GroupModal = ({
     setGroupName("");
   };
 
-  const handleGroupChange = (value: string) => {
-    setGroupName(value);
+  // const handleGroupChange = (value: string) => {
+  //   setGroupName(value);
 
-    if (!validateLength(value, min, max)) {
-      setGroupNameError(GROUP_NAME_LENGTH);
-    } else {
-      setGroupNameError(EMPTY);
-    }
-  };
+  //   if (!validateLength(value, min, max)) {
+  //     setGroupNameError(GROUP_NAME_LENGTH);
+  //   } else {
+  //     setGroupNameError(EMPTY);
+  //   }
+  // };
 
   // for AutoSuggest
   const handleGetFriends = (value: string) => {
@@ -205,7 +200,7 @@ export const GroupModal = ({
                 title="Group name:"
                 name="group"
                 value={groupName}
-                onChange={handleGroupChange}
+                onChange={setGroupName}
                 type="text"
                 autoComplete="off"
                 placeholder="Enter a group name"

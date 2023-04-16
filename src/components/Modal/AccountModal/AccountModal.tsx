@@ -6,17 +6,16 @@ import {
   EMAIL_INVALID,
   PASSWORD_INVALID,
   EMPTY,
-  NAME_INVALID,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
   CATCHED_ERROR,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 import {
-  isStringExist,
   validateEmail,
   validatePassword,
   validateEmailExist,
+  validateLength,
 } from "../../../utils/utils";
 
 interface ModalProps {
@@ -55,16 +54,17 @@ export const AccountModal = ({
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
-    const isUserNameValid = isStringExist(userName);
+    // const isUserNameValid = validateLength(userName, "User name", 1, 20);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(newPassword);
 
-    if (!isUserNameValid) {
-      setUserNameError(NAME_INVALID);
-      isValid = false;
-    } else {
-      setUserNameError(EMPTY);
-    }
+    isValid = validateLength({
+      target: userName,
+      fieldName: "User name",
+      min: 1,
+      max: 20,
+      setFieldError: setUserNameError,
+    });
 
     if (!isEmailValid) {
       setEmailError(EMAIL_INVALID);

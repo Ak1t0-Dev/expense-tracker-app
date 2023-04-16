@@ -7,7 +7,7 @@ import {
   validateEmail,
   validatePassword,
   validateMatchPassword,
-  isStringExist,
+  validateLength,
   validateEmailExist,
 } from "../../utils/utils";
 import {
@@ -16,7 +16,6 @@ import {
   EMPTY,
   ENTER_EMAIL,
   ENTER_PASSWORD,
-  NAME_INVALID,
   PASSWORD_INVALID,
   PASSWORD_UNMATCHED,
   REGISTER_ERROR,
@@ -85,7 +84,6 @@ export const Register = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
-    const isUserNameValid = isStringExist(userName);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
     const isMatchPasswordValid = validateMatchPassword(
@@ -93,12 +91,13 @@ export const Register = () => {
       confirmPassword
     );
 
-    if (!isUserNameValid) {
-      setUserNameError(NAME_INVALID);
-      isValid = false;
-    } else {
-      setUserNameError(EMPTY);
-    }
+    isValid = validateLength({
+      target: userName,
+      fieldName: "user name",
+      min: 1,
+      max: 20,
+      setFieldError: setUserNameError,
+    });
 
     if (!isEmailValid) {
       setEmailError(EMAIL_INVALID);
