@@ -4,8 +4,8 @@ import { Header } from "../../components/Header/Header";
 import { InputText } from "../../components/InputText/InputText";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import {
+  validateLength,
   validatePayment,
-  isStringExist,
   calculateExpense,
 } from "../../utils/utils";
 import { AutoSuggest } from "../../components/AutoSugggest/AutoSuggest";
@@ -14,7 +14,6 @@ import { Snackbar } from "../../components/Snackbar/Snackbar";
 import {
   EMPTY,
   PAYMENT_ERROR,
-  DESCRIPTION_ERROR,
   CATCHED_ERROR,
   REGISTER_SUCCESSFUL,
   REGISTER_ERROR,
@@ -83,7 +82,7 @@ export const Expense = () => {
     const postUser = {
       email: userEmail,
     };
-    fetch("http://localhost:3001/api/friends", {
+    fetch("http://localhost:3001/api/get/friends", {
       method: "POST",
       mode: "cors",
       headers: {
@@ -120,20 +119,20 @@ export const Expense = () => {
     event.preventDefault();
     // validations
     const isPaymentValid = validatePayment(payment);
-    const isDescriptionValid = isStringExist(description);
+
+    isValid = validateLength({
+      target: description,
+      fieldName: "Desicription",
+      min: 1,
+      max: 50,
+      fieldError: setDescriptionError,
+    });
 
     if (!isPaymentValid) {
       setPaymentError(PAYMENT_ERROR);
       isValid = false;
     } else {
       setPaymentError(EMPTY);
-    }
-
-    if (!isDescriptionValid) {
-      setDescriptionError(DESCRIPTION_ERROR);
-      isValid = false;
-    } else {
-      setDescriptionError(EMPTY);
     }
 
     if (isValid) {
@@ -315,7 +314,7 @@ export const Expense = () => {
             disabled={isDisabled}
           />
         </form>
-        {status !== "" ? <Snackbar type={status} message={message} /> : null}
+        {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>
   );

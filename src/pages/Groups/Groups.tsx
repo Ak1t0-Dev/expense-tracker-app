@@ -7,11 +7,7 @@ import { formattedDate } from "../../utils/utils";
 import AuthContext from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { STATUS } from "../../constants/constants";
-import {
-  CATCHED_ERROR,
-  REGISTER_ERROR,
-  REGISTER_SUCCESSFUL,
-} from "../../constants/message";
+import { CATCHED_ERROR, RETRIEVED_ERROR } from "../../constants/message";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
 
 interface UserGroups {
@@ -47,11 +43,9 @@ export const Groups = () => {
       if (response.ok) {
         const data = await response.json();
         setGroups(data);
-        setMessage(REGISTER_SUCCESSFUL);
-        setStatus(STATUS.SUCCESS);
         return true;
       } else {
-        setMessage(REGISTER_ERROR);
+        setMessage(RETRIEVED_ERROR);
         setStatus(STATUS.ERROR);
         return false;
       }
@@ -97,7 +91,7 @@ export const Groups = () => {
                   <span className="inline-block">{group.group_name}</span>
                   <span className="inline-block">{group.registered_name}</span>
                   <span className="inline-block">
-                    {formattedDate(group.registered_at)}
+                    {formattedDate(group.registered_at, "")}
                   </span>
                 </div>
               ))}
@@ -113,15 +107,15 @@ export const Groups = () => {
               />
             </div>
           </div>
-          {isModalOpen ? (
+          {isModalOpen && (
             <GroupModal
               onClose={handleModalClose}
               userEmail={userEmail}
               fetchedGroupsData={() => fetchedGroupsData(userEmail)}
             />
-          ) : null}
+          )}
         </div>
-        {status !== "" ? <Snackbar type={status} message={message} /> : null}
+        {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>
   );

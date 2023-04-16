@@ -6,79 +6,48 @@ import {
   EMAIL_INVALID,
   PASSWORD_INVALID,
   EMPTY,
-  NAME_INVALID,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
   CATCHED_ERROR,
-  EMAIL_EXISTS,
+  ENTER_NEW_PASSWORD,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 import {
-  isStringExist,
   validateEmail,
-  validateMatchPassword,
   validatePassword,
+  validateEmailExist,
+  validateLength,
 } from "../../../utils/utils";
 
 interface ModalProps {
   onClose: () => void;
-  userEmail: string;
+  user: {
+    email: string;
+    name: string;
+  };
+  currentEmail: string;
+  fetchedUserData: (email: string) => void;
 }
 
-export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
-  const [userName, setUserName] = useState("");
+export const AccountModal = ({
+  onClose,
+  user,
+  currentEmail,
+  fetchedUserData,
+}: ModalProps) => {
+  const [userName, setUserName] = useState(user.name);
   const [userNameError, setUserNameError] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(user.email);
   const [emailError, setEmailError] = useState("");
-  const [password, setPassword] = useState("");
-  const [passwordError, setPasswordError] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordMatchError, setPasswordMatchError] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [newPasswordError, setNewPasswordError] = useState("");
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
 
   // make a button activated or not
   const isDisabled =
-    userName.trim() === "" ||
-    email.trim() === "" ||
-    password.trim() === "" ||
-    confirmPassword.trim() === "";
+    userName.trim() === "" || email.trim() === "" || newPassword.trim() === "";
   let isValid = true;
-
-  // ----------------------------------------------------------------
-  // check an email address if it has already existed in a collection
-  // (also is used in a register page)
-  // ----------------------------------------------------------------
-  const validateEmailExist = async () => {
-    try {
-      const response = await fetch("http://localhost:3001/api/user/exist", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data > 0) {
-          setEmailError(EMAIL_EXISTS);
-          return false;
-        } else {
-          setMessage(REGISTER_SUCCESSFUL);
-          setStatus(STATUS.SUCCESS);
-          return true;
-        }
-      } else {
-        setMessage(REGISTER_ERROR);
-        setStatus(STATUS.ERROR);
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage(CATCHED_ERROR);
-      setStatus(STATUS.ERROR);
-      return false;
-    }
-  };
 
   // ----------------------------------------------------------------
   // register a user data if it is valid
@@ -86,20 +55,16 @@ export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
-    const isUserNameValid = isStringExist(userName);
     const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password);
-    const isMatchPasswordValid = validateMatchPassword(
-      password,
-      confirmPassword
-    );
+    const isPasswordValid = validatePassword(newPassword);
 
-    if (!isUserNameValid) {
-      setEmailError(NAME_INVALID);
-      isValid = false;
-    } else {
-      setEmailError(EMPTY);
-    }
+    isValid = validateLength({
+      target: userName,
+      fieldName: "User name",
+      min: 1,
+      max: 20,
+      fieldError: setUserNameError,
+    });
 
     if (!isEmailValid) {
       setEmailError(EMAIL_INVALID);
@@ -109,29 +74,68 @@ export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
     }
 
     if (!isPasswordValid) {
-      setPasswordError(PASSWORD_INVALID);
+      setNewPasswordError(PASSWORD_INVALID);
       isValid = false;
     } else {
-      setPasswordError(EMPTY);
-    }
-
-    if (!isMatchPasswordValid) {
-      setPasswordMatchError("Please enter a valid email address.");
-      isValid = false;
-    } else {
-      setPasswordMatchError(EMPTY);
+      setNewPasswordError(EMPTY);
     }
 
     if (isValid) {
-      const isEmailExist = await validateEmailExist();
+      const isEmailExist = await validateEmailExist({
+        email,
+        setEmailError,
+        setMessage,
+        setStatus,
+      });
       if (isEmailExist) {
-        // updateUserData();
+        updateUserData();
       }
     }
   };
 
   const handleUserChange = (value: string) => {
     setUserName(value);
+  };
+
+  const updateUserData = async () => {
+    const userData = {
+      currentEmail: currentEmail,
+      name: userName,
+      email: email,
+      password: newPassword,
+    };
+    try {
+      const response = await fetch("http://localhost:3001/api/update/user", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        setEmail(data.email);
+        setUserName(data.name);
+        localStorage.setItem("expense-tracker", data.email);
+        onClose();
+        fetchedUserData(data.email);
+        setMessage(REGISTER_SUCCESSFUL);
+        setStatus(STATUS.SUCCESS);
+        return true;
+      } else {
+        setMessage(REGISTER_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
   };
 
   return (
@@ -194,27 +198,14 @@ export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
                 {/* password input component */}
                 <InputText
                   id="password"
-                  title="Password"
+                  title="New Password"
                   name="password"
-                  value={password}
-                  onChange={setPassword}
+                  value={newPassword}
+                  onChange={setNewPassword}
                   type="password"
                   autoComplete="current-password"
-                  placeholder="Enter your password"
-                  error={passwordError}
-                />
-
-                {/* confirm password input component */}
-                <InputText
-                  id="confirm-password"
-                  title="Confirm Password"
-                  name="confirm-password"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  type="password"
-                  autoComplete="off"
-                  placeholder="Password"
-                  error={passwordMatchError}
+                  placeholder={ENTER_NEW_PASSWORD}
+                  error={newPasswordError}
                 />
                 <Button
                   name="SAVE"
@@ -229,7 +220,7 @@ export const AccountModal = ({ onClose, userEmail }: ModalProps) => {
           </form>
         </div>
       </div>
-      {status !== "" ? <Snackbar type={status} message={message} /> : null}
+      {status !== "" && <Snackbar type={status} message={message} />}
     </>
   );
 };

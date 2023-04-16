@@ -5,6 +5,9 @@ import { Button } from "../../components/Button/Button";
 import { AccountModal } from "../../components/Modal/AccountModal/AccountModal";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/AuthContext";
+import { CATCHED_ERROR, RETRIEVED_ERROR } from "../../constants/message";
+import { STATUS } from "../../constants/constants";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
 
 interface UserInfo {
   name: string;
@@ -16,8 +19,38 @@ export const Acccount = () => {
   const userEmail = localStorage.getItem("expense-tracker") || "";
   const [user, setUser] = useState<UserInfo | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AuthContext);
+
+  const fetchedUserData = async (email: string) => {
+    try {
+      const response = await fetch("http://localhost:3001/api/get/user", {
+        method: "POST",
+        mode: "cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data);
+        return true;
+      } else {
+        setMessage(RETRIEVED_ERROR);
+        setStatus(STATUS.ERROR);
+        return false;
+      }
+    } catch (error) {
+      console.log(error);
+      setMessage(CATCHED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
+  };
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -26,21 +59,7 @@ export const Acccount = () => {
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    const postUser = {
-      email: userEmail,
-    };
-    fetch("http://localhost:3001/api/get/user", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postUser),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setUser(data);
-      });
+    fetchedUserData(userEmail);
   }, [userEmail]);
 
   const handleModalOpen = () => {
@@ -77,9 +96,15 @@ export const Acccount = () => {
               onClick={handleModalOpen}
             />
           </div>
-          {isModalOpen ? (
-            <AccountModal onClose={handleModalClose} userEmail={userEmail} />
-          ) : null}
+          {user && isModalOpen && (
+            <AccountModal
+              onClose={handleModalClose}
+              user={user}
+              currentEmail={userEmail}
+              fetchedUserData={fetchedUserData}
+            />
+          )}
+          {status !== "" && <Snackbar type={status} message={message} />}
         </div>
       </MainContainer>
     </>

@@ -4,9 +4,3 @@ export enum STATUS {
   INFO = "info",
   EMPTY = "",
 }
-
-// export const STATUS = {
-//   SUCCESS: "success",
-//   ERROR: "error",
-//   INFO: "info",
-// } as const;

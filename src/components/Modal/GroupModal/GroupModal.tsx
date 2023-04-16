@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { InputText } from "../../InputText/InputText";
-import { isStringExist, validateLength } from "../../../utils/utils";
+import { validateLength } from "../../../utils/utils";
 import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Friends } from "../../../pages/Expense/Expense";
 import { Button } from "../../Button/Button";
 import { Snackbar } from "../../Snackbar/Snackbar";
 import {
   CATCHED_ERROR,
-  EMPTY,
-  GROUP_NAME_LENGTH,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
+  RETRIEVED_ERROR,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 
@@ -39,29 +38,28 @@ export const GroupModal = ({
   const [message, setMessage] = useState("");
 
   // to disable a button
-  const min = 1;
-  const max = 50;
   const isDisabled = groupName.trim() === "" || addedFriends.length === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
     event.preventDefault();
     // validations
-    const isGroupNameValid = isStringExist(groupName);
-
-    if (!isGroupNameValid) {
-      setGroupNameError(GROUP_NAME_LENGTH);
-      isValid = false;
-    } else {
-      setGroupNameError(EMPTY);
-    }
+    isValid = validateLength({
+      target: groupName,
+      fieldName: "User name",
+      min: 1,
+      max: 30,
+      fieldError: setGroupNameError,
+    });
 
     if (isValid) {
       const isGroupRegistered = await createGroup();
       if (isGroupRegistered) {
-        handleInputReset();
-        onClose();
-        fetchedGroupsData(userEmail);
+        setTimeout(() => {
+          handleInputReset();
+          onClose();
+          fetchedGroupsData(userEmail);
+        }, 1000);
       }
     }
   };
@@ -69,16 +67,6 @@ export const GroupModal = ({
   const handleInputReset = () => {
     setAddedFriends([]);
     setGroupName("");
-  };
-
-  const handleGroupChange = (value: string) => {
-    setGroupName(value);
-
-    if (!validateLength(value, min, max)) {
-      setGroupNameError(GROUP_NAME_LENGTH);
-    } else {
-      setGroupNameError(EMPTY);
-    }
   };
 
   // for AutoSuggest
@@ -133,7 +121,7 @@ export const GroupModal = ({
 
   const fetchFriendsData = async (email: string) => {
     try {
-      const response = await fetch("http://localhost:3001/api/friends", {
+      const response = await fetch("http://localhost:3001/api/get/friends", {
         method: "POST",
         mode: "cors",
         headers: {
@@ -144,11 +132,9 @@ export const GroupModal = ({
       if (response.ok) {
         const data = await response.json();
         setFriends(data);
-        setMessage(REGISTER_SUCCESSFUL);
-        setStatus(STATUS.SUCCESS);
         return true;
       } else {
-        setMessage(REGISTER_ERROR);
+        setMessage(RETRIEVED_ERROR);
         setStatus(STATUS.ERROR);
         return false;
       }
@@ -165,7 +151,7 @@ export const GroupModal = ({
   }, [userEmail]);
 
   if (!userEmail) {
-    return null; // if userEmail is null or undefined, don't render the modal
+    return null;
   }
 
   return (
@@ -205,7 +191,7 @@ export const GroupModal = ({
                 title="Group name:"
                 name="group"
                 value={groupName}
-                onChange={handleGroupChange}
+                onChange={setGroupName}
                 type="text"
                 autoComplete="off"
                 placeholder="Enter a group name"
@@ -231,7 +217,7 @@ export const GroupModal = ({
           </div>
         </form>
       </div>
-      {status !== "" ? <Snackbar type={status} message={message} /> : null}
+      {status !== "" && <Snackbar type={status} message={message} />}
     </div>
   );
 };

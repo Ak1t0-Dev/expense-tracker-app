@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from "react";
 import { Header } from "../../components/Header/Header";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
-import { formattedDateTime } from "../../utils/utils";
+import { formattedDate } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/AuthContext";
 
@@ -63,7 +63,7 @@ export const History = () => {
     const user: User = {
       email: userEmail,
     };
-    fetch("http://localhost:3001/api/history", {
+    fetch("http://localhost:3001/api/get/history", {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
@@ -126,11 +126,11 @@ export const History = () => {
                     <p className={`font-semibold ${style.textColor}`}>
                       {style.payerName} paid{" "}
                       {data.payment.toLocaleString().toString()}{" "}
-                      {data.group_name ? `at ${data.group_name}` : null}
+                      {data.group_name && `at ${data.group_name}`}
                     </p>
                     <div className="text-sm">
                       <span className="pr-3">
-                        {formattedDateTime(data.registered_at)}
+                        {formattedDate(data.registered_at, "time")}
                       </span>
                       <span className="pr-0.5">
                         added by{" "}
@@ -144,9 +144,9 @@ export const History = () => {
               })}
             </div>
           </div>
-          {isModalOpen ? (
+          {isModalOpen && (
             <HistoryModal onClose={handleModalClose} data={selectedHistory} />
-          ) : null}
+          )}
         </div>
       </MainContainer>
     </>

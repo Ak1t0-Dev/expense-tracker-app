@@ -7,16 +7,15 @@ import {
   validateEmail,
   validatePassword,
   validateMatchPassword,
-  isStringExist,
+  validateLength,
+  validateEmailExist,
 } from "../../utils/utils";
 import {
   CATCHED_ERROR,
-  EMAIL_EXISTS,
   EMAIL_INVALID,
   EMPTY,
   ENTER_EMAIL,
   ENTER_PASSWORD,
-  NAME_INVALID,
   PASSWORD_INVALID,
   PASSWORD_UNMATCHED,
   REGISTER_ERROR,
@@ -46,67 +45,6 @@ export const Register = () => {
     confirmPassword.trim() === "";
   let isValid = true;
 
-  // ----------------------------------------------------------------
-  // check an email address if it has already existed in a collection
-  // ----------------------------------------------------------------
-  // const validateEmailExist = async (): Promise<boolean> => {
-  //   return await fetch("http://localhost:3001/api/user/exist", {
-  //     method: "POST",
-  //     mode: "cors",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ email: email }),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       if (data === 0) {
-  //         return true;
-  //       } else if (data > 0) {
-  //         setEmailError(EMAIL_EXISTS);
-  //         return false;
-  //       } else {
-  //         setMessage(REGISTER_ERROR);
-  //         setStatus(STATUS.ERROR);
-  //         return false;
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error(error);
-  //       setMessage(CATCHED_ERROR);
-  //       setStatus(STATUS.ERROR);
-  //       return false;
-  //     });
-  // };
-
-  const validateEmailExist = async () => {
-    try {
-      const response = await fetch("http://localhost:3001/api/user/exist", {
-        method: "POST",
-        mode: "cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data > 0) {
-          setEmailError(EMAIL_EXISTS);
-          return false;
-        } else {
-          setMessage(REGISTER_SUCCESSFUL);
-          setStatus(STATUS.SUCCESS);
-          return true;
-        }
-      } else {
-        setMessage(REGISTER_ERROR);
-        setStatus(STATUS.ERROR);
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage(CATCHED_ERROR);
-      setStatus(STATUS.ERROR);
-      return false;
-    }
-  };
   // ----------------------------------------------------------------
   // register a user data to a database
   // ----------------------------------------------------------------
@@ -146,7 +84,6 @@ export const Register = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // validations
-    const isUserNameValid = isStringExist(userName);
     const isEmailValid = validateEmail(email);
     const isPasswordValid = validatePassword(password);
     const isMatchPasswordValid = validateMatchPassword(
@@ -154,12 +91,13 @@ export const Register = () => {
       confirmPassword
     );
 
-    if (!isUserNameValid) {
-      setUserNameError(NAME_INVALID);
-      isValid = false;
-    } else {
-      setUserNameError(EMPTY);
-    }
+    isValid = validateLength({
+      target: userName,
+      fieldName: "user name",
+      min: 1,
+      max: 20,
+      fieldError: setUserNameError,
+    });
 
     if (!isEmailValid) {
       setEmailError(EMAIL_INVALID);
@@ -183,7 +121,12 @@ export const Register = () => {
     }
 
     if (isValid) {
-      const isEmailExist = await validateEmailExist();
+      const isEmailExist = await validateEmailExist({
+        email,
+        setEmailError,
+        setMessage,
+        setStatus,
+      });
       if (isEmailExist) await registerUserData();
     }
   };
@@ -261,7 +204,7 @@ export const Register = () => {
             </form>
           </div>
         </div>
-        {status !== "" ? <Snackbar type={status} message={message} /> : null}
+        {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>
   );

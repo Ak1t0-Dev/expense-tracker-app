@@ -2,6 +2,7 @@ import { useState } from "react";
 import Autosuggest from "react-autosuggest";
 import { RxCross1 } from "react-icons/rx";
 import { Friends } from "../../pages/Expense/Expense";
+import { ENTER_FRIENDS_EMAIL } from "../../constants/message";
 
 interface AutoSuggestProps {
   friends: Friends[]; // modify: importing from expense
@@ -51,7 +52,7 @@ export const AutoSuggest = ({
         getSuggestionValue={handleGetFriends}
         renderSuggestion={renderSuggestion}
         inputProps={{
-          placeholder: "Enter a email address",
+          placeholder: ENTER_FRIENDS_EMAIL,
           value: suggestionItem,
           onChange: (_, { newValue }) => {
             setsuggestionItem(newValue);
