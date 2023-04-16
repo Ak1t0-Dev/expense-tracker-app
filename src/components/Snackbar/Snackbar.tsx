@@ -1,5 +1,3 @@
-import React from "react";
-
 interface SnackbarProps {
   type: "success" | "error" | "info";
   message: string;

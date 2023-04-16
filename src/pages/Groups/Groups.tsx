@@ -7,11 +7,7 @@ import { formattedDate } from "../../utils/utils";
 import AuthContext from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { STATUS } from "../../constants/constants";
-import {
-  CATCHED_ERROR,
-  REGISTER_ERROR,
-  REGISTER_SUCCESSFUL,
-} from "../../constants/message";
+import { CATCHED_ERROR, RETRIEVED_ERROR } from "../../constants/message";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
 
 interface UserGroups {
@@ -47,11 +43,9 @@ export const Groups = () => {
       if (response.ok) {
         const data = await response.json();
         setGroups(data);
-        setMessage(REGISTER_SUCCESSFUL);
-        setStatus(STATUS.SUCCESS);
         return true;
       } else {
-        setMessage(REGISTER_ERROR);
+        setMessage(RETRIEVED_ERROR);
         setStatus(STATUS.ERROR);
         return false;
       }

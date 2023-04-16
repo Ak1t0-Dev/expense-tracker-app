@@ -9,6 +9,7 @@ import {
   CATCHED_ERROR,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
+  RETRIEVED_ERROR,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 
@@ -54,9 +55,11 @@ export const GroupModal = ({
     if (isValid) {
       const isGroupRegistered = await createGroup();
       if (isGroupRegistered) {
-        handleInputReset();
-        onClose();
-        fetchedGroupsData(userEmail);
+        setTimeout(() => {
+          handleInputReset();
+          onClose();
+          fetchedGroupsData(userEmail);
+        }, 1000);
       }
     }
   };
@@ -65,16 +68,6 @@ export const GroupModal = ({
     setAddedFriends([]);
     setGroupName("");
   };
-
-  // const handleGroupChange = (value: string) => {
-  //   setGroupName(value);
-
-  //   if (!validateLength(value, min, max)) {
-  //     setGroupNameError(GROUP_NAME_LENGTH);
-  //   } else {
-  //     setGroupNameError(EMPTY);
-  //   }
-  // };
 
   // for AutoSuggest
   const handleGetFriends = (value: string) => {
@@ -139,11 +132,9 @@ export const GroupModal = ({
       if (response.ok) {
         const data = await response.json();
         setFriends(data);
-        setMessage(REGISTER_SUCCESSFUL);
-        setStatus(STATUS.SUCCESS);
         return true;
       } else {
-        setMessage(REGISTER_ERROR);
+        setMessage(RETRIEVED_ERROR);
         setStatus(STATUS.ERROR);
         return false;
       }
