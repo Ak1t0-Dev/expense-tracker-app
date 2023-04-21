@@ -117,7 +117,7 @@ export const History = () => {
                 return (
                   <div
                     key={index}
-                    className={`mb-2 border-2 rounded-lg ${style.borderColor} px-4 py-2 bg-white`}
+                    className={`mb-2 border-2 rounded-lg ${style.borderColor} px-4 py-2 bg-white cursor-pointer`}
                     onClick={() => handleModalOpen(data)}
                   >
                     <div className="font-medium text-lg">

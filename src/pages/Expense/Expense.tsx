@@ -7,8 +7,10 @@ import {
   validateLength,
   validatePayment,
   calculateExpense,
+  fetchedFriendsData,
+  fetchedGroupsData,
 } from "../../utils/utils";
-import { AutoSuggest } from "../../components/AutoSugggest/AutoSuggest";
+import { STATUS } from "../../constants/constants";
 import { Button } from "../../components/Button/Button";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
 import {
@@ -18,14 +20,17 @@ import {
   REGISTER_SUCCESSFUL,
   REGISTER_ERROR,
 } from "../../constants/message";
-import { STATUS } from "../../constants/constants";
 import "./Expense.css";
 import AuthContext from "../../contexts/AuthContext";
+import { SearchModal } from "../../components/Modal/SearchModal/SearchModal";
+import { SearchButton } from "../../components/SearchButton/SearchButton";
+import { Groups } from "../GroupsList/GroupsList";
 
 // ----------------------------------------------------------------
 // interfaces
 // ----------------------------------------------------------------
 export interface Friends {
+  name: string;
   email: string;
 }
 
@@ -51,7 +56,8 @@ export const Expense = () => {
   const userEmail = localStorage.getItem("expense-tracker") || "";
 
   const [friends, setFriends] = useState<Friends[]>([]);
-  const [addedFriends, setAddedFriends] = useState<string[]>([]);
+  const [groups, setGroups] = useState<Groups[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [payer, setPayer] = useState(userEmail);
@@ -62,6 +68,7 @@ export const Expense = () => {
   const [category, setCategory] = useState(0);
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigate = useNavigate();
   const { isLoggedIn } = useContext(AuthContext);
@@ -73,27 +80,17 @@ export const Expense = () => {
   }, [isLoggedIn, navigate]);
 
   const isDisabled =
-    addedFriends.length === 0 ||
+    selectedFriends.length === 0 ||
     description.trim() === "" ||
     payment === 0 ||
     isNaN(payment);
 
   useEffect(() => {
-    const postUser = {
-      email: userEmail,
-    };
-    fetch("http://localhost:3001/api/get/friends", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postUser),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setFriends(data);
-      });
+    fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
+  }, [userEmail]);
+
+  useEffect(() => {
+    fetchedGroupsData({ email: userEmail, setGroups, setMessage, setStatus });
   }, [userEmail]);
 
   useEffect(() => {
@@ -106,8 +103,8 @@ export const Expense = () => {
   }, []);
 
   useEffect(() => {
-    setCalcPayment(calculateExpense(payment, addedFriends.length));
-  }, [payment, addedFriends]);
+    setCalcPayment(calculateExpense(payment, selectedFriends.length));
+  }, [payment, selectedFriends]);
 
   const calculatePayment = (value: string) => {
     const newPayment = parseInt(value);
@@ -150,7 +147,7 @@ export const Expense = () => {
     const group: Group = {
       group_name: "",
       email: userEmail,
-      members: addedFriends,
+      members: selectedFriends,
       category_order: category,
       method_order: 1,
       process_status: 1,
@@ -204,23 +201,31 @@ export const Expense = () => {
     setDescription(value);
   };
 
+  const handleModalOpen = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
+
   // for AutoSuggest
   const handleGetFriends = (value: string) => {
-    setAddedFriends([...addedFriends, value]);
+    setSelectedFriends([...selectedFriends, value]);
     return value;
   };
   // for AutoSuggest
   const handleDeleteFriends = (value: string) => {
-    const index = addedFriends.indexOf(value);
+    const index = selectedFriends.indexOf(value);
     if (index > -1) {
-      const newAddedFriends = [...addedFriends];
+      const newAddedFriends = [...selectedFriends];
       newAddedFriends.splice(index, 1);
-      setAddedFriends(newAddedFriends);
+      setSelectedFriends(newAddedFriends);
     }
   };
 
   const handleInputReset = () => {
-    setAddedFriends([]);
+    setSelectedFriends([]);
     setDescription("");
     setPayer(userEmail);
     setPayment(0);
@@ -233,12 +238,10 @@ export const Expense = () => {
       <Header />
       <MainContainer>
         <form onSubmit={handleSubmit} className="p-4">
-          <AutoSuggest
-            friends={friends}
-            addedFriends={addedFriends}
-            handleGetFriends={handleGetFriends}
-            handleDeleteFriends={handleDeleteFriends}
-          />
+          <div>
+            <h3>Expense-sharing partners:</h3>
+            <SearchButton onClick={handleModalOpen} />
+          </div>
           <div>
             <h3>Categories:</h3>
             <select
@@ -288,7 +291,7 @@ export const Expense = () => {
               onChange={handleSelectChange}
             >
               <option value={userEmail}>you</option>
-              {addedFriends.map((friend, index) => {
+              {selectedFriends.map((friend, index) => {
                 return (
                   <option key={index} value={friend}>
                     {friend}
@@ -300,8 +303,8 @@ export const Expense = () => {
           <div>
             <h3>Divided expense:</h3>
             <h4>
-              {calcPayment.toLocaleString()}/person ({addedFriends.length + 1}{" "}
-              people)
+              {calcPayment.toLocaleString()}/person (
+              {selectedFriends.length + 1} people)
             </h4>
           </div>
           <Button
@@ -314,6 +317,16 @@ export const Expense = () => {
             disabled={isDisabled}
           />
         </form>
+        {isModalOpen && (
+          <SearchModal
+            onClose={handleModalClose}
+            friends={friends}
+            groups={groups}
+            selectedFriends={selectedFriends}
+            handleGetFriends={handleGetFriends}
+            handleDeleteFriends={handleDeleteFriends}
+          />
+        )}
         {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>

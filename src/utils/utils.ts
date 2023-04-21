@@ -5,9 +5,12 @@ import {
   EMPTY,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
+  RETRIEVED_ERROR,
   getInputLengthMessage,
 } from "../constants/message";
 import { STATUS } from "../constants/constants";
+import { Friends } from "../pages/Expense/Expense";
+import { Groups } from "../pages/GroupsList/GroupsList";
 
 // ----------------------------------------------------------------
 // an email address validation
@@ -149,6 +152,90 @@ export const validateEmailExist = async ({
       }
     } else {
       setMessage(REGISTER_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
+  } catch (error) {
+    console.log(error);
+    setMessage(CATCHED_ERROR);
+    setStatus(STATUS.ERROR);
+    return false;
+  }
+};
+
+// ----------------------------------------------------------------
+// get a user's friends data
+// ----------------------------------------------------------------
+interface friendsProps {
+  email: string;
+  setFriends: (value: Friends[]) => void;
+  setMessage: (value: string) => void;
+  setStatus: (value: STATUS) => void;
+}
+export const fetchedFriendsData = async ({
+  email,
+  setFriends,
+  setMessage,
+  setStatus,
+}: friendsProps): Promise<boolean> => {
+  try {
+    const response = await fetch("http://localhost:3001/api/get/friends", {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setFriends(data);
+      return true;
+    } else {
+      setMessage(RETRIEVED_ERROR);
+      setStatus(STATUS.ERROR);
+      return false;
+    }
+  } catch (error) {
+    console.error(error);
+    setMessage(CATCHED_ERROR);
+    setStatus(STATUS.ERROR);
+    return false;
+  }
+};
+
+// ----------------------------------------------------------------
+// get a user's groups data
+// ----------------------------------------------------------------
+interface groupsProps {
+  email: string;
+  setGroups: (value: Groups[]) => void;
+  setMessage: (value: string) => void;
+  setStatus: (value: STATUS) => void;
+}
+export const fetchedGroupsData = async ({
+  email,
+  setGroups,
+  setMessage,
+  setStatus,
+}: groupsProps): Promise<boolean> => {
+  try {
+    const response = await fetch("http://localhost:3001/api/get/groups", {
+      method: "POST",
+      mode: "cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setGroups(data);
+      return true;
+    } else {
+      setMessage(RETRIEVED_ERROR);
       setStatus(STATUS.ERROR);
       return false;
     }
