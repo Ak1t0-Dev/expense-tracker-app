@@ -3,22 +3,22 @@ import { InputText } from "../../components/InputText/InputText";
 import { Button } from "../../components/Button/Button";
 import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { useNavigate } from "react-router-dom";
-import { validateEmail } from "../../utils/utils";
+import { fetchedFriendsData, validateEmail } from "../../utils/utils";
 import { Header } from "../../components/Header/Header";
+import { EMAIL_INVALID } from "../../constants/message";
+import { Snackbar } from "../../components/Snackbar/Snackbar";
+import { STATUS } from "../../constants/constants";
+import { Friends } from "../Expense/Expense";
 
-interface UserFriends {
-  email: string;
-  name: string;
-}
-
-export const Friends = () => {
-  const userEmail = localStorage.getItem("expense-tracker" || null);
+export const FriendsList = () => {
+  const userEmail = localStorage.getItem("expense-tracker") || "";
   const navigate = useNavigate();
 
-  const [friends, setFriends] = useState<UserFriends[]>([]);
+  const [friends, setFriends] = useState<Friends[]>([]);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
-
+  const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
+  const [message, setMessage] = useState("");
   const isDisabled = email.trim() === "";
   let isValid = true;
 
@@ -28,7 +28,7 @@ export const Friends = () => {
     const isEmailValid = validateEmail(email);
 
     if (!isEmailValid) {
-      setEmailError("Please enter a valid email address.");
+      setEmailError(EMAIL_INVALID);
       isValid = false;
     } else {
       setEmailError("");
@@ -40,21 +40,7 @@ export const Friends = () => {
   };
 
   useEffect(() => {
-    const postUser = {
-      email: userEmail,
-    };
-    fetch("http://localhost:3001/api/get/friends", {
-      method: "POST",
-      mode: "cors",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(postUser),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setFriends(data);
-      });
+    fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
   }, [userEmail]);
 
   return (
@@ -68,7 +54,7 @@ export const Friends = () => {
               {friends.map((friend, index) => (
                 <div
                   key={index}
-                  className="mb-2 font-medium bg-white border-2 border-black px-4 py-2 flex flex-row justify-between"
+                  className="mb-2 font-medium bg-white border-2 border-black px-4 py-2 flex flex-row justify-between cursor-pointer"
                 >
                   <span className="inline-block">{friend.name}</span>
                   <span className="inline-block">{friend.email}</span>
@@ -105,6 +91,7 @@ export const Friends = () => {
             </form>
           </div>
         </div>
+        {status !== "" && <Snackbar type={status} message={message} />}
       </MainContainer>
     </>
   );

@@ -4,3 +4,8 @@ export enum STATUS {
   INFO = "info",
   EMPTY = "",
 }
+
+export enum PARTNER {
+  FRIENDS = "FRIENDS",
+  GROUP = "GROUP",
+}

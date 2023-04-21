@@ -4,11 +4,11 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Login } from "./pages/Login/Login";
 import { Register } from "./pages/Register/Register";
 import { Main } from "./pages/Main/Main";
-import { Friends } from "./pages/Friends/Friends";
+import { FriendsList } from "./pages/FriendsList/FriendsList";
 import { Expense } from "./pages/Expense/Expense";
 import { History } from "./pages/History/History";
 import { Acccount } from "./pages/Account/Acccount";
-import { Groups } from "./pages/Groups/Groups";
+import { GroupsList } from "./pages/GroupsList/GroupsList";
 import { useEffect, useState } from "react";
 import AuthContext from "./contexts/AuthContext";
 
@@ -34,8 +34,8 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/main" element={<Main />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/groups" element={<Groups />} />
+          <Route path="/friends" element={<FriendsList />} />
+          <Route path="/groups" element={<GroupsList />} />
           <Route path="/history" element={<History />} />
           <Route path="/expense" element={<Expense />} />
           <Route path="/account" element={<Acccount />} />
