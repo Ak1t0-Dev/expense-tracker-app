@@ -42,7 +42,7 @@ interface Categories {
 interface Group {
   group_name: string;
   email: string; // to get user_id from a users collection
-  members: string[]; // to get user_id from a users collection and to create group members
+  members: Friends[]; // to get user_id from a users collection and to create group members
   method_order: number;
   process_status: number;
   category_order: number;
@@ -57,7 +57,7 @@ export const Expense = () => {
 
   const [friends, setFriends] = useState<Friends[]>([]);
   const [groups, setGroups] = useState<Groups[]>([]);
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<Friends[]>([]);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [payer, setPayer] = useState(userEmail);
@@ -201,6 +201,7 @@ export const Expense = () => {
     setDescription(value);
   };
 
+  // for a search modal
   const handleModalOpen = () => {
     setIsModalOpen(true);
   };
@@ -209,19 +210,8 @@ export const Expense = () => {
     setIsModalOpen(false);
   };
 
-  // for AutoSuggest
-  const handleGetFriends = (value: string) => {
-    setSelectedFriends([...selectedFriends, value]);
-    return value;
-  };
-  // for AutoSuggest
-  const handleDeleteFriends = (value: string) => {
-    const index = selectedFriends.indexOf(value);
-    if (index > -1) {
-      const newAddedFriends = [...selectedFriends];
-      newAddedFriends.splice(index, 1);
-      setSelectedFriends(newAddedFriends);
-    }
+  const handleSelectedFriendsChange = (checkedFriends: Friends[]) => {
+    setSelectedFriends(checkedFriends);
   };
 
   const handleInputReset = () => {
@@ -293,8 +283,8 @@ export const Expense = () => {
               <option value={userEmail}>you</option>
               {selectedFriends.map((friend, index) => {
                 return (
-                  <option key={index} value={friend}>
-                    {friend}
+                  <option key={index} value={friend.email}>
+                    {friend.email}
                   </option>
                 );
               })}
@@ -323,8 +313,7 @@ export const Expense = () => {
             friends={friends}
             groups={groups}
             selectedFriends={selectedFriends}
-            handleGetFriends={handleGetFriends}
-            handleDeleteFriends={handleDeleteFriends}
+            onSelectedFriendsChange={handleSelectedFriendsChange}
           />
         )}
         {status !== "" && <Snackbar type={status} message={message} />}

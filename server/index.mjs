@@ -116,7 +116,7 @@ const createGroup = async (userData) => {
     email: userData.email
   }, { _id: 1 })
 
-  const resultMember = await Users.find({ email: { $in: userData.members } },
+  const resultMember = await Users.find({ email: { $in: userData.members.email } },
     { _id: 1 });
 
   const groupMembers = [resultUser, ...resultMember];

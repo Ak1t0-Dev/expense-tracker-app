@@ -3,14 +3,14 @@ import { Friends } from "../../../pages/Expense/Expense";
 import { PARTNER } from "../../../constants/constants";
 import { Groups } from "../../../pages/GroupsList/GroupsList";
 import { Button } from "../../Button/Button";
+import { RxCross1 } from "react-icons/rx";
 
 interface ModalProps {
   onClose: () => void;
   friends: Friends[];
   groups: Groups[];
-  selectedFriends: string[];
-  handleGetFriends: (value: string) => string;
-  handleDeleteFriends: (value: string) => void;
+  selectedFriends: Friends[];
+  onSelectedFriendsChange: (checkedFriends: Friends[]) => void;
 }
 
 export const SearchModal = ({
@@ -18,16 +18,16 @@ export const SearchModal = ({
   friends,
   groups,
   selectedFriends,
-  handleGetFriends,
-  handleDeleteFriends,
+  onSelectedFriendsChange,
 }: ModalProps) => {
   const [filteredGroups, setFilteredGroups] = useState<Groups[]>(groups);
   const [filteredFriends, setFilteredFriends] = useState<Friends[]>(friends);
-  const [checkedFriends, setCheckedFriends] = useState<Record<string, boolean>>(
-    {}
-  );
+  const [checkedFriends, setCheckedFriends] =
+    useState<Friends[]>(selectedFriends);
   const [partner, setPartner] = useState<PARTNER>(PARTNER.FRIENDS);
   const [searchValue, setSearchValue] = useState("");
+
+  const isDisabled = checkedFriends.length === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,21 +37,25 @@ export const SearchModal = ({
     setPartner(event.target.value as PARTNER);
   };
 
-  //   const isDisabled =
-  //   checkedFriends.length === 0 ||
-  // ;
-
   // ----------------------------------------------------------------
   // Check friends to add or not
   // ----------------------------------------------------------------
-  const handleCheckedChange = (email: string, isChecked: boolean): void => {
+  const handleCheckedChange = (
+    email: string,
+    name: string,
+    isChecked: boolean
+  ): void => {
     if (isChecked) {
-      setCheckedFriends({ ...checkedFriends, [email]: isChecked });
+      const addFriend: Friends = { email: email, name: name };
+      const updateFriends = [...checkedFriends, addFriend];
+      setCheckedFriends(updateFriends);
+      onSelectedFriendsChange(updateFriends);
     } else {
-      setCheckedFriends((prevFriend) => {
-        const { [email]: deletedProperty, ...rest } = prevFriend;
-        return rest;
-      });
+      const deleteFriends = checkedFriends.filter(
+        (friend) => friend.email !== email
+      );
+      setCheckedFriends(deleteFriends);
+      onSelectedFriendsChange(deleteFriends);
     }
   };
 
@@ -184,7 +188,7 @@ export const SearchModal = ({
                   <span className="sr-only">Close modal</span>
                 </button>
               </div>
-              <ul className="flex flex-col p-6 border-gray-200 rounded-b overflow-auto h-60">
+              <ul className="flex flex-col p-6 border-gray-200 rounded-b overflow-auto h-80">
                 {partner === PARTNER.FRIENDS
                   ? filteredFriends.map((friend, index) => (
                       <li key={index}>
@@ -194,11 +198,18 @@ export const SearchModal = ({
                           name="friends"
                           value={friend.email}
                           id={index.toString()}
-                          // checked={checkedFriends[friend.email] || false}
-                          checked={checkedFriends[friend.email] || false}
+                          checked={
+                            selectedFriends.find(
+                              (selectedFriend) =>
+                                selectedFriend.email === friend.email
+                            )
+                              ? true
+                              : false
+                          }
                           onChange={(event) =>
                             handleCheckedChange(
                               friend.email,
+                              friend.name,
                               event.target.checked
                             )
                           }
@@ -222,16 +233,30 @@ export const SearchModal = ({
                       </li>
                     ))}
               </ul>
+              <div className="h-12 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
+                {checkedFriends.map((friend, index) => {
+                  return (
+                    <span
+                      className="inline-block flex-none px-2 py-1 border border-gray-400 rounded-xl"
+                      key={index}
+                      // onClick={() => handleDeleteFriends(friend.email)}
+                    >
+                      {friend.name}
+                      <RxCross1 className="ml-1 inline text-xs" />
+                    </span>
+                  );
+                })}
+              </div>
             </div>
-            {/* <Button
-            name="ADD"
-            textColor="text-amber-50"
-            bgColor="bg-amber-800"
-            hoverColor="hover:bg-amber-700"
-            focusColor="focus:bg-amber-800"
-            onClick={() => navigate("/expense")}
-            disabled={isDisabled}
-          /> */}
+            <Button
+              name="ADD"
+              textColor="text-amber-50"
+              bgColor="bg-amber-800"
+              hoverColor="hover:bg-amber-700"
+              focusColor="focus:bg-amber-800"
+              // onClick={() => navigate("/expense")}
+              disabled={isDisabled}
+            />
           </form>
         </div>
       </div>
