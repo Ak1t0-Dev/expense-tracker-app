@@ -1,17 +1,8 @@
 import { useEffect, useState } from "react";
-import { Friends } from "../../../pages/Expense/Expense";
 import { PARTNER } from "../../../constants/constants";
-import { Groups } from "../../../pages/GroupsList/GroupsList";
 import { Button } from "../../Button/Button";
 import { RxCross1 } from "react-icons/rx";
-
-interface ModalProps {
-  onClose: () => void;
-  friends: Friends[];
-  groups: Groups[];
-  selectedFriends: Friends[];
-  onSelectedFriendsChange: (checkedFriends: Friends[]) => void;
-}
+import { Friends, Groups, SearchModalProps } from "../../../types/types";
 
 export const SearchModal = ({
   onClose,
@@ -19,7 +10,7 @@ export const SearchModal = ({
   groups,
   selectedFriends,
   onSelectedFriendsChange,
-}: ModalProps) => {
+}: SearchModalProps) => {
   const [filteredGroups, setFilteredGroups] = useState<Groups[]>(groups);
   const [filteredFriends, setFilteredFriends] = useState<Friends[]>(friends);
   const [checkedFriends, setCheckedFriends] =
@@ -123,7 +114,6 @@ export const SearchModal = ({
                       onChange={(e) => {
                         setSearchValue(e.target.value);
                       }}
-                      required
                     />
                   </div>
                 </div>
@@ -230,6 +220,7 @@ export const SearchModal = ({
                         className="mb-2 font-medium bg-white border-2 border-black px-4 py-2 flex flex-row justify-between cursor-pointer"
                       >
                         <span className="inline-block">{group.group_name}</span>
+                        <span className="inline-block">{`${group.members.length} members`}</span>
                       </li>
                     ))}
               </ul>

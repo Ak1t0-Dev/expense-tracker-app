@@ -18,16 +18,7 @@ import {
   validateEmailExist,
   validateLength,
 } from "../../../utils/utils";
-
-interface ModalProps {
-  onClose: () => void;
-  user: {
-    email: string;
-    name: string;
-  };
-  currentEmail: string;
-  fetchedUserData: (email: string) => void;
-}
+import { ModalProps } from "../../../types/types";
 
 export const AccountModal = ({
   onClose,

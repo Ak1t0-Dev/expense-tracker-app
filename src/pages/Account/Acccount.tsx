@@ -8,11 +8,7 @@ import AuthContext from "../../contexts/AuthContext";
 import { CATCHED_ERROR, RETRIEVED_ERROR } from "../../constants/message";
 import { STATUS } from "../../constants/constants";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
-
-interface UserInfo {
-  name: string;
-  email: string;
-}
+import { UserInfo } from "../../types/types";
 
 export const Acccount = () => {
   // for assigning a user email from the local storage

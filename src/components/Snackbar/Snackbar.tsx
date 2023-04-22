@@ -1,7 +1,4 @@
-interface SnackbarProps {
-  type: "success" | "error" | "info";
-  message: string;
-}
+import { SnackbarProps } from "../../types/types";
 
 export const Snackbar = ({ type, message }: SnackbarProps) => {
   const getStyle = () => {

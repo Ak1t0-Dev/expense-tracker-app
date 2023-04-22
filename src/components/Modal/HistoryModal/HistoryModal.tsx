@@ -1,12 +1,7 @@
-import { UserHistory } from "../../../pages/History/History";
+import { HistoryModalProps } from "../../../types/types";
 import { calculateExpense, formattedDate } from "../../../utils/utils";
 
-interface ModalProps {
-  onClose: () => void;
-  data: UserHistory | null;
-}
-
-export const HistoryModal = ({ onClose, data }: ModalProps) => {
+export const HistoryModal = ({ onClose, data }: HistoryModalProps) => {
   // for assigning a user email from the local storage
   const userEmail = localStorage.getItem("expense-tracker") || "";
   const getStyle = (email: string, payer: string, payment: number) => {

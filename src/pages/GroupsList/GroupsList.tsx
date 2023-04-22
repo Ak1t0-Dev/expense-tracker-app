@@ -8,14 +8,7 @@ import AuthContext from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { STATUS } from "../../constants/constants";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
-
-export interface Groups {
-  uuid: string;
-  group_name: string;
-  member_name: string[];
-  registered_name: string;
-  registered_at: Date;
-}
+import { Groups } from "../../types/types";
 
 export const GroupsList = () => {
   // for assigning a user email from the local storage

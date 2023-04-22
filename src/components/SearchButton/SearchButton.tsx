@@ -1,6 +1,4 @@
-interface SeacrhProps {
-  onClick: () => void;
-}
+import { SeacrhProps } from "../../types/types";
 
 export const SearchButton = ({ onClick }: SeacrhProps) => {
   return (

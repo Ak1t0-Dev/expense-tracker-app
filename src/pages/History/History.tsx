@@ -5,42 +5,7 @@ import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
 import { formattedDate } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../../contexts/AuthContext";
-
-interface User {
-  email: string;
-}
-
-export interface UserHistory {
-  id: string;
-  payer: {
-    email: string;
-    name: string;
-  };
-  group_name: string;
-  members: {
-    email: string;
-    name: string;
-  }[];
-  methods: {
-    method_order: number;
-    method_name: string;
-  };
-  processes: {
-    process_status: number;
-    process_name: string;
-  };
-  categories: {
-    category_order: number;
-    category_name: string;
-  };
-  description: string;
-  payment: number;
-  registered_name: {
-    email: string;
-    name: string;
-  };
-  registered_at: Date;
-}
+import { User, UserHistory } from "../../types/types";
 
 export const History = () => {
   // for assigning a user email from the local storage

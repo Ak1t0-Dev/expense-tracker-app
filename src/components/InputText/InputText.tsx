@@ -1,15 +1,4 @@
-interface InputTextProps {
-  type: "email" | "password" | "confirmPassword" | "text";
-  title: string;
-  id: string;
-  name: string;
-  value: string;
-  autoComplete: string;
-  placeholder: string;
-  onChange: (value: string) => void;
-  error: string;
-  confirmPasswordValue?: string;
-}
+import { InputTextProps } from "../../types/types";
 
 export const InputText = (props: InputTextProps) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

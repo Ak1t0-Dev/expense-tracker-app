@@ -254,7 +254,7 @@ app.post("/api/get/groups", async (req, res) => {
           from: "users",
           localField: "member_id._id",
           foreignField: "_id",
-          as: "users"
+          as: "members"
         }
       },
       {

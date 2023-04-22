@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { InputText } from "../../InputText/InputText";
 import { validateLength } from "../../../utils/utils";
-import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
-import { Friends } from "../../../pages/Expense/Expense";
+// import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Button } from "../../Button/Button";
 import { Snackbar } from "../../Snackbar/Snackbar";
 import {
@@ -12,24 +11,13 @@ import {
   RETRIEVED_ERROR,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
-
-interface ModalProps {
-  onClose: () => void;
-  userEmail: string;
-  fetchedGroupsData: (email: string) => Promise<boolean>;
-}
-
-interface Group {
-  group_name: string;
-  email: string;
-  members: string[];
-}
+import { ExpenseGroup, Friends, GroupModalProps } from "../../../types/types";
 
 export const GroupModal = ({
   onClose,
   userEmail,
   fetchedGroupsData,
-}: ModalProps) => {
+}: GroupModalProps) => {
   const [groupName, setGroupName] = useState("");
   const [groupNameError, setGroupNameError] = useState("");
   const [friends, setFriends] = useState<Friends[]>([]);
@@ -88,7 +76,7 @@ export const GroupModal = ({
   // create a group and members and save an expense to a collection
   // ----------------------------------------------------------------
   const createGroup = async (): Promise<boolean> => {
-    const group: Group = {
+    const group: ExpenseGroup = {
       group_name: groupName,
       email: userEmail,
       members: addedFriends,
@@ -197,12 +185,12 @@ export const GroupModal = ({
                 placeholder="Enter a group name"
                 error={groupNameError}
               />
-              <AutoSuggest
+              {/* <AutoSuggest
                 friends={friends}
                 addedFriends={addedFriends}
                 handleGetFriends={handleGetFriends}
                 handleDeleteFriends={handleDeleteFriends}
-              />
+              /> */}
             </div>
             <div className="flex items-center p-6 space-x-2">
               <Button

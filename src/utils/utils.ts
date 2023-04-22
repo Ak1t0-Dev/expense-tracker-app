@@ -9,8 +9,7 @@ import {
   getInputLengthMessage,
 } from "../constants/message";
 import { STATUS } from "../constants/constants";
-import { Friends } from "../pages/Expense/Expense";
-import { Groups } from "../pages/GroupsList/GroupsList";
+import { Friends, Groups } from "../types/types";
 
 // ----------------------------------------------------------------
 // an email address validation
@@ -173,6 +172,7 @@ interface friendsProps {
   setStatus: (value: STATUS) => void;
 }
 export const fetchedFriendsData = async ({
+  // ここの処理はデータの整型まででいい
   email,
   setFriends,
   setMessage,

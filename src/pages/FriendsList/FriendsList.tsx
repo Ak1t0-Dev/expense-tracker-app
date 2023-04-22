@@ -8,7 +8,7 @@ import { Header } from "../../components/Header/Header";
 import { EMAIL_INVALID } from "../../constants/message";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
 import { STATUS } from "../../constants/constants";
-import { Friends } from "../Expense/Expense";
+import { Friends } from "../../types/types";
 
 export const FriendsList = () => {
   const userEmail = localStorage.getItem("expense-tracker") || "";

@@ -24,32 +24,7 @@ import "./Expense.css";
 import AuthContext from "../../contexts/AuthContext";
 import { SearchModal } from "../../components/Modal/SearchModal/SearchModal";
 import { SearchButton } from "../../components/SearchButton/SearchButton";
-import { Groups } from "../GroupsList/GroupsList";
-
-// ----------------------------------------------------------------
-// interfaces
-// ----------------------------------------------------------------
-export interface Friends {
-  name: string;
-  email: string;
-}
-
-interface Categories {
-  category_order: number;
-  category_name: string;
-}
-
-interface Group {
-  group_name: string;
-  email: string; // to get user_id from a users collection
-  members: Friends[]; // to get user_id from a users collection and to create group members
-  method_order: number;
-  process_status: number;
-  category_order: number;
-  description: string;
-  payment: number;
-  payer: string;
-}
+import { Categories, Friends, Group, Groups } from "../../types/types";
 
 export const Expense = () => {
   // for assigning a user email from the local storage

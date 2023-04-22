@@ -3,7 +3,6 @@ import { HomePage } from "./pages/HomePage/HomePage";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Login } from "./pages/Login/Login";
 import { Register } from "./pages/Register/Register";
-import { Main } from "./pages/Main/Main";
 import { FriendsList } from "./pages/FriendsList/FriendsList";
 import { Expense } from "./pages/Expense/Expense";
 import { History } from "./pages/History/History";
@@ -33,7 +32,6 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/main" element={<Main />} />
           <Route path="/friends" element={<FriendsList />} />
           <Route path="/groups" element={<GroupsList />} />
           <Route path="/history" element={<History />} />

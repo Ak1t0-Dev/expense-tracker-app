@@ -1,12 +1,4 @@
-interface ButtonProps {
-  name: string;
-  textColor: string;
-  bgColor: string;
-  hoverColor: string;
-  focusColor: string;
-  onClick?: () => void;
-  disabled?: boolean;
-}
+import { ButtonProps } from "../../types/types";
 
 export const Button = (props: ButtonProps) => {
   const bgStyle = {
