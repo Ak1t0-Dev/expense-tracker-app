@@ -258,6 +258,50 @@ app.post("/api/get/groups", async (req, res) => {
         }
       },
       {
+        $lookup: {
+          from: "members",
+          localField: "member_id._id",
+          foreignField: "_id",
+          as: "updated"
+        }
+      },
+      {
+        $lookup: {
+          from: "members",
+          localField: "member_id._id",
+          foreignField: "_id",
+          as: "updated"
+        }
+      },
+      {
+        $addFields: {
+          registered_name: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$members",
+                  as: "member",
+                  cond: { $eq: ["$$member._id", "$registered_id"] }
+                }
+              },
+              0
+            ]
+          },
+          updated_name: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: "$members",
+                  as: "member",
+                  cond: { $eq: ["$$member._id", "$updated_id"] }
+                }
+              },
+              0
+            ]
+          }
+        }
+      },
+      {
         $project: {
           _id: 0,
           uuid: 1,
@@ -267,6 +311,13 @@ app.post("/api/get/groups", async (req, res) => {
             email: 1
           },
           registered_at: 1,
+          updated_at: 1,
+          registered_name: {
+            name: 1, email: 1
+          },
+          updated_name: {
+            name: 1, email: 1
+          },
         },
       }
     ]);

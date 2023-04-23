@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { InputText } from "../../InputText/InputText";
-import { validateLength } from "../../../utils/utils";
+import { fetchedFriendsData, validateLength } from "../../../utils/utils";
 // import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Button } from "../../Button/Button";
 import { Snackbar } from "../../Snackbar/Snackbar";
@@ -12,6 +12,8 @@ import {
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 import { ExpenseGroup, Friends, GroupModalProps } from "../../../types/types";
+import { SelectFriendsList } from "../../List/SelectFriendsList";
+import { RxCross1 } from "react-icons/rx";
 
 export const GroupModal = ({
   onClose,
@@ -21,12 +23,14 @@ export const GroupModal = ({
   const [groupName, setGroupName] = useState("");
   const [groupNameError, setGroupNameError] = useState("");
   const [friends, setFriends] = useState<Friends[]>([]);
-  const [addedFriends, setAddedFriends] = useState<string[]>([]);
+  const [filteredFriends, setFilteredFriends] = useState<Friends[]>(friends);
+  const [checkedFriends, setCheckedFriends] = useState<Friends[]>([]);
+
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
 
   // to disable a button
-  const isDisabled = groupName.trim() === "" || addedFriends.length === 0;
+  const isDisabled = groupName.trim() === "" || checkedFriends.length === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
@@ -52,24 +56,26 @@ export const GroupModal = ({
     }
   };
 
-  const handleInputReset = () => {
-    setAddedFriends([]);
-    setGroupName("");
+  const handleCheckedChange = (
+    email: string,
+    name: string,
+    isChecked: boolean
+  ): void => {
+    if (isChecked) {
+      const addFriend: Friends = { email: email, name: name };
+      const updateFriends = [...checkedFriends, addFriend];
+      setCheckedFriends(updateFriends);
+    } else {
+      const deleteFriends = checkedFriends.filter(
+        (friend) => friend.email !== email
+      );
+      setCheckedFriends(deleteFriends);
+    }
   };
 
-  // for AutoSuggest
-  const handleGetFriends = (value: string) => {
-    setAddedFriends([...addedFriends, value]);
-    return value;
-  };
-  // for AutoSuggest
-  const handleDeleteFriends = (value: string) => {
-    const index = addedFriends.indexOf(value);
-    if (index > -1) {
-      const newAddedFriends = [...addedFriends];
-      newAddedFriends.splice(index, 1);
-      setAddedFriends(newAddedFriends);
-    }
+  const handleInputReset = () => {
+    setFilteredFriends([]);
+    setGroupName("");
   };
 
   // ----------------------------------------------------------------
@@ -79,7 +85,10 @@ export const GroupModal = ({
     const group: ExpenseGroup = {
       group_name: groupName,
       email: userEmail,
-      members: addedFriends,
+      members: checkedFriends.map((friend) => {
+        // 後で修正
+        return friend.name;
+      }),
     };
 
     try {
@@ -107,35 +116,8 @@ export const GroupModal = ({
     }
   };
 
-  const fetchFriendsData = async (email: string) => {
-    try {
-      const response = await fetch("http://localhost:3001/api/get/friends", {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setFriends(data);
-        return true;
-      } else {
-        setMessage(RETRIEVED_ERROR);
-        setStatus(STATUS.ERROR);
-        return false;
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage(CATCHED_ERROR);
-      setStatus(STATUS.ERROR);
-      return false;
-    }
-  };
-
   useEffect(() => {
-    fetchFriendsData(userEmail);
+    fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
   }, [userEmail]);
 
   if (!userEmail) {
@@ -185,12 +167,25 @@ export const GroupModal = ({
                 placeholder="Enter a group name"
                 error={groupNameError}
               />
-              {/* <AutoSuggest
-                friends={friends}
-                addedFriends={addedFriends}
-                handleGetFriends={handleGetFriends}
-                handleDeleteFriends={handleDeleteFriends}
-              /> */}
+              <SelectFriendsList
+                filteredFriends={friends}
+                selectedFriends={checkedFriends}
+                handleCheckedChange={handleCheckedChange}
+              />
+              <div className="h-12 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
+                {checkedFriends.map((friend, index) => {
+                  return (
+                    <span
+                      className="inline-block flex-none px-2 py-1 border border-gray-400 rounded-xl"
+                      key={index}
+                      // onClick={() => handleDeleteFriends(friend.email)}
+                    >
+                      {friend.name}
+                      <RxCross1 className="ml-1 inline text-xs" />
+                    </span>
+                  );
+                })}
+              </div>
             </div>
             <div className="flex items-center p-6 space-x-2">
               <Button

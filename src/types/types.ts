@@ -73,6 +73,12 @@ export interface GroupModalProps {
   fetchedGroupsData: (email: string) => Promise<boolean>;
 }
 
+export interface GroupDetailModalProps {
+  onClose: () => void;
+  userEmail: string;
+  data: Groups | null;
+}
+
 export interface ExpenseGroup {
   group_name: string;
   email: string;
@@ -127,8 +133,16 @@ export interface Groups {
   uuid: string;
   group_name: string;
   members: Friends[];
-  registered_name: string;
+  registered_name: {
+    email: string;
+    name: string;
+  };
   registered_at: Date;
+  updated_name: {
+    email: string;
+    name: string;
+  };
+  updated_at: Date;
 }
 
 export interface Group {

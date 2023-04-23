@@ -10,7 +10,7 @@ import { Snackbar } from "../../components/Snackbar/Snackbar";
 import { STATUS } from "../../constants/constants";
 import { Friends } from "../../types/types";
 
-export const FriendsList = () => {
+export const MyFriendsList = () => {
   const userEmail = localStorage.getItem("expense-tracker") || "";
   const navigate = useNavigate();
 

@@ -9,12 +9,15 @@ import { useNavigate } from "react-router-dom";
 import { STATUS } from "../../constants/constants";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
 import { Groups } from "../../types/types";
+import { GroupDetailModal } from "../../components/Modal/GroupDetailModal/GroupDetailModal";
 
-export const GroupsList = () => {
+export const MyGroupsList = () => {
   // for assigning a user email from the local storage
   const userEmail = localStorage.getItem("expense-tracker") || "";
   const [groups, setGroups] = useState<Groups[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<Groups | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
 
@@ -39,6 +42,15 @@ export const GroupsList = () => {
     setIsModalOpen(false);
   };
 
+  const handleDetailModalOpen = (selected: Groups) => {
+    setSelectedGroup(selected);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleDetailModalClose = () => {
+    setIsDetailModalOpen(false);
+  };
+
   return (
     <>
       <Header />
@@ -51,9 +63,9 @@ export const GroupsList = () => {
                 <div
                   key={index}
                   className="mb-2 font-medium bg-white border-2 border-black px-4 py-2 flex flex-row justify-between cursor-pointer"
+                  onClick={() => handleDetailModalOpen(group)}
                 >
                   <span className="inline-block">{group.group_name}</span>
-                  <span className="inline-block">{group.registered_name}</span>
                   <span className="inline-block">
                     {formattedDate(group.registered_at, "")}
                   </span>
@@ -83,6 +95,13 @@ export const GroupsList = () => {
                   setStatus,
                 })
               }
+            />
+          )}
+          {isDetailModalOpen && (
+            <GroupDetailModal
+              onClose={handleDetailModalClose}
+              userEmail={userEmail}
+              data={selectedGroup}
             />
           )}
         </div>
