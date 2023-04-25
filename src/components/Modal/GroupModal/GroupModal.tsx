@@ -8,12 +8,11 @@ import {
   CATCHED_ERROR,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
-  RETRIEVED_ERROR,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
 import { ExpenseGroup, Friends, GroupModalProps } from "../../../types/types";
 import { SelectFriendsList } from "../../List/SelectFriendsList";
-import { RxCross1 } from "react-icons/rx";
+import { SelectedTag } from "../../Tag/SelectedTag";
 
 export const GroupModal = ({
   onClose,
@@ -38,7 +37,7 @@ export const GroupModal = ({
     // validations
     isValid = validateLength({
       target: groupName,
-      fieldName: "User name",
+      fieldName: "Group name",
       min: 1,
       max: 30,
       fieldError: setGroupNameError,
@@ -66,10 +65,7 @@ export const GroupModal = ({
       const updateFriends = [...checkedFriends, addFriend];
       setCheckedFriends(updateFriends);
     } else {
-      const deleteFriends = checkedFriends.filter(
-        (friend) => friend.email !== email
-      );
-      setCheckedFriends(deleteFriends);
+      removeSelectedFriend(email);
     }
   };
 
@@ -85,13 +81,11 @@ export const GroupModal = ({
     const group: ExpenseGroup = {
       group_name: groupName,
       email: userEmail,
-      members: checkedFriends.map((friend) => {
-        // 後で修正
-        return friend.name;
-      }),
+      members: checkedFriends,
     };
 
     try {
+      console.log(group);
       const response = await fetch("http://localhost:3001/api/register/group", {
         method: "POST",
         mode: "cors",
@@ -123,6 +117,23 @@ export const GroupModal = ({
   if (!userEmail) {
     return null;
   }
+
+  const handleRemoveFriends = (email: string) => {
+    removeSelectedFriend(email);
+  };
+
+  const removeSelectedFriend = (email: string) => {
+    const updatedFriends = checkedFriends.filter(
+      (friend) => friend.email !== email
+    );
+    setCheckedFriends(updatedFriends);
+  };
+
+  const handleGroupNameChange: React.ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    setGroupName(e.target.value);
+  };
 
   return (
     <div
@@ -161,7 +172,7 @@ export const GroupModal = ({
                 title="Group name:"
                 name="group"
                 value={groupName}
-                onChange={setGroupName}
+                onChange={handleGroupNameChange}
                 type="text"
                 autoComplete="off"
                 placeholder="Enter a group name"
@@ -175,14 +186,11 @@ export const GroupModal = ({
               <div className="h-12 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
                 {checkedFriends.map((friend, index) => {
                   return (
-                    <span
-                      className="inline-block flex-none px-2 py-1 border border-gray-400 rounded-xl"
-                      key={index}
-                      // onClick={() => handleDeleteFriends(friend.email)}
-                    >
-                      {friend.name}
-                      <RxCross1 className="ml-1 inline text-xs" />
-                    </span>
+                    <SelectedTag
+                      item={friend.name}
+                      index={index}
+                      handleRemoveItem={() => handleRemoveFriends(friend.email)}
+                    />
                   );
                 })}
               </div>

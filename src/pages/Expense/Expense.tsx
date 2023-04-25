@@ -81,8 +81,10 @@ export const Expense = () => {
     setCalcPayment(calculateExpense(payment, selectedFriends.length));
   }, [payment, selectedFriends]);
 
-  const calculatePayment = (value: string) => {
-    const newPayment = parseInt(value);
+  const handlePaymentChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    const newPayment = parseInt(event.target.value);
     setPayment(newPayment);
   };
 
@@ -172,8 +174,10 @@ export const Expense = () => {
     setCategory(parseInt(event.target.value));
   };
 
-  const handleDescriptionChange = (value: string) => {
-    setDescription(value);
+  const handleDescriptionChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    setDescription(event.target.value);
   };
 
   // for a search modal
@@ -242,7 +246,7 @@ export const Expense = () => {
             title="Payment:"
             name="payment"
             value={isNaN(payment) ? "" : payment.toString()}
-            onChange={calculatePayment}
+            onChange={handlePaymentChange}
             type="text"
             autoComplete="off"
             placeholder="100"

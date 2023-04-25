@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { PARTNER } from "../../../constants/constants";
 import { Button } from "../../Button/Button";
-import { RxCross1 } from "react-icons/rx";
 import { Friends, Groups, SearchModalProps } from "../../../types/types";
 import { SelectedTag } from "../../Tag/SelectedTag";
 

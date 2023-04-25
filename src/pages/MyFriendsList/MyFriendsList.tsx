@@ -43,6 +43,12 @@ export const MyFriendsList = () => {
     fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
   }, [userEmail]);
 
+  const handleEmailChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    return setEmail(event.target.value);
+  };
+
   return (
     <>
       <Header />
@@ -70,7 +76,7 @@ export const MyFriendsList = () => {
                   title="Email address"
                   name="email"
                   value={email}
-                  onChange={setEmail}
+                  onChange={handleEmailChange}
                   type="email"
                   autoComplete="email"
                   placeholder="Email address"

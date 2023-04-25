@@ -82,7 +82,7 @@ export interface GroupDetailModalProps {
 export interface ExpenseGroup {
   group_name: string;
   email: string;
-  members: string[];
+  members: Friends[];
 }
 
 // from accountModal
@@ -104,7 +104,7 @@ export interface InputTextProps {
   value: string;
   autoComplete: string;
   placeholder: string;
-  onChange: (value: string) => void;
+  onChange: React.ChangeEventHandler<HTMLInputElement>;
   error: string;
   confirmPasswordValue?: string;
 }

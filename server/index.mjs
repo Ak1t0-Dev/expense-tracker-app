@@ -116,9 +116,10 @@ const createGroup = async (userData) => {
     email: userData.email
   }, { _id: 1 })
 
-  const resultMember = await Users.find({ email: { $in: userData.members.email } },
+  const resultMember = await Users.find({ email: { $in: userData.members } },
     { _id: 1 });
-
+  console.log("resultMember", resultMember);
+  console.log("userData.members.email", userData.members);
   const groupMembers = [resultUser, ...resultMember];
 
   const newGroup = new Groups({
@@ -138,12 +139,14 @@ const createGroup = async (userData) => {
 // ----------------------------------------------------------------------------
 app.post('/api/register/expense', async (req, res) => {
 
+  const memberEmail = req.body.members.map((member) => member.email);
+
   const userData = {
     uuid: uuidv4(),
     date: new Date(),
     group_name: req.body.group_name,
     email: req.body.email,
-    members: req.body.members,
+    members: memberEmail,
   }
 
   try {
@@ -213,12 +216,14 @@ app.post("/api/get/friends", async (req, res) => {
 //  register a group
 // ----------------------------------------------------------------------------
 app.post("/api/register/group", async (req, res) => {
+  const memberEmail = req.body.members.map((member) => member.email);
+
   const userData = {
     uuid: uuidv4(),
     date: new Date(),
     group_name: req.body.group_name,
     email: req.body.email,
-    members: req.body.members,
+    members: memberEmail,
   }
   try {
     const resultGroup = await createGroup(userData);
@@ -321,8 +326,6 @@ app.post("/api/get/groups", async (req, res) => {
         },
       }
     ]);
-
-    console.log("groups", groups);
     res.json(groups);
 
   } catch (err) {
