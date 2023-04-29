@@ -3,14 +3,20 @@ import mongoose from 'mongoose';
 import { ObjectId } from 'bson';
 // use for expense
 import { v4 as uuidv4 } from 'uuid';
+import sgMail from "@sendgrid/mail";
 import dotenv from 'dotenv';
+import fs from "fs";
+// import content from "../server/mails/mail"
 
 dotenv.config();
 const url = process.env.DB_URL;
 const port = 3001;
-
 const app = express();
 app.use(express.json());
+
+const content = fs.readFileSync("server/mails/mail.html", "utf-8");
+// set sendGrid API Key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // deal with cors
 app.use((req, res, next) => {
@@ -106,6 +112,17 @@ const expensesSchema = new mongoose.Schema({
 }, { versionKey: false });
 
 const Expenses = mongoose.model('expenses', expensesSchema);
+
+// friendRequests config
+const friendrequestsSchema = new mongoose.Schema({
+  sender: { type: ObjectId, required: true },
+  reciever: { reciever_id: { type: ObjectId }, reciever_email: { type: String }, reciever_name: { type: String } },
+  status: { type: String, required: true },
+  registered_at: { type: Date, required: true },
+  updated_at: { type: Date }
+}, { versionKey: false });
+
+const Friendrequests = mongoose.model('friendrequests', friendrequestsSchema);
 
 // ----------------------------------------------------------------------------
 //  function: create a group
@@ -203,8 +220,31 @@ app.post("/api/get/friends", async (req, res) => {
     const friendIds = friends.map((friend) => friend.friend_id);
     const users = await Users.find({ _id: { $in: friendIds } },
       // { email: 1, name: 1, password: 0, _id: 0 }); why it gets an error?
-      { email: 1, name: 1, _id: 0 });
+      { email: 1, name: 1, _id: 1 });
     res.json(users);
+
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+// ----------------------------------------------------------------------------
+//  get pending friends
+// ----------------------------------------------------------------------------
+app.post("/api/get/pendingFriends", async (req, res) => {
+  const email = req.body.email;
+  console.log(email);
+  try {
+    // get user id from users collection
+    const userId = await Users.findOne({ email: email })
+    const friends = await Friendrequests.find(
+      {
+        sender: userId._id,
+        status: "pending"
+      }).sort({ registered_at: -1 });
+    console.log(friends);
+    res.json(friends);
 
   } catch (err) {
     console.error(err);
@@ -378,7 +418,14 @@ app.post("/api/login", async (req, res) => {
     const users = await Users.findOne({
       email: email,
       password: password
-    })
+    },
+      {
+        _id: 1,
+        name: 1,
+        email: 1,
+      },
+      { password: 0 }
+    )
     console.log(users);
     res.json(users);
 
@@ -429,6 +476,82 @@ app.post("/api/get/userId", async (req, res) => {
     res.sendStatus(500);
   }
 });
+
+// ----------------------------------------------------------------------------
+//  send a friend request
+// ----------------------------------------------------------------------------
+app.post("/api/send/request", async (req, res) => {
+
+  console.log(req.body.email, req.body.requestEmail, req.body.userName)
+  // get a user info
+  const user = await Users.findOne({ email: req.body.email });
+  const friend = await Users.findOne({ email: req.body.requestEmail });
+
+  let friendId;
+  let friendName;
+  let friendEmail;
+
+
+  if (friend) {
+    friendId = friend._id;
+    friendName = friend.name;
+    friendEmail = friend.email;
+  } else {
+    friendId = null;
+    friendName = req.body.requestName;
+    friendEmail = req.body.requestEmail;
+  }
+
+  console.log("abcdef", user, friend);
+  console.log("ghijkl", friendId, friendEmail);
+
+  // should put condition
+  const replacedContent = content.replace("{{ username }}", user.name).replace("{{ email }}", user.email);
+  const msg = {
+    to: friendEmail,
+    from: "life.4.ism@icloud.com",
+    subject: "[SMART EXPENSE DEVIDER] You got a friend request.",
+    text: `You got a friend request from ${user.name} ${user.email}!\nJoin in SMART EXPENSE DEVIDER\nhttp://localhost:3000/`,
+    // html: `<strong>You got a friend request from ${user.name} ${user.email}!</strong><br>http://localhost:3000/`,
+    html: replacedContent,
+    // templateId: "d-49fb054b6a1c464c9bcf8ef5051bd84b",
+    // dynamicTemplateData: {
+    //   name: user.name,
+    //   email: user.email
+    // }
+  };
+
+
+  sgMail
+    .send(msg)
+    .then(() => {
+      console.log("Email sent");
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+
+  try {
+    const newFriendRequests = new Friendrequests(
+      {
+        sender: user._id,
+        reciever: { reciever_id: friendId, reciever_email: friendEmail, reciever_name: friendName },
+        status: "pending",
+        registered_at: Date(),
+        updated_at: Date(),
+      }
+    );
+
+    const resultExpense = await newFriendRequests.save();
+    res.json(resultExpense);
+
+  } catch (err) {
+    console.error(err);
+    res.sendStatus(500);
+  }
+});
+
+
 
 // ----------------------------------------------------------------------------
 //  register a user data
@@ -634,3 +757,4 @@ app.post("/api/get/history", async (req, res) => {
     res.sendStatus(500);
   }
 });
+

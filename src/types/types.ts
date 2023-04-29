@@ -1,7 +1,14 @@
+import { ObjectId } from "mongoose";
 import { ReactNode } from "react";
 
 export interface User {
   email: string;
+}
+
+export interface UserInfo {
+  _id: string;
+  email: string;
+  name: string;
 }
 
 export interface UserHistory {
@@ -57,6 +64,7 @@ export interface Categories {
 export interface SearchModalProps {
   onClose: () => void;
   friends: Friends[];
+  convertPendingFriends: Friends[];
   groups: Groups[];
   selectedFriends: Friends[];
   onSelectedFriendsChange: (checkedFriends: Friends[]) => void;
@@ -125,6 +133,22 @@ export interface UserInfo {
 }
 
 export interface Friends {
+  _id: ObjectId;
+  name: string;
+  email: string;
+}
+
+export interface PendingFriends {
+  _id: ObjectId;
+  reciever: {
+    reciever_id: ObjectId;
+    reciever_email: string;
+    reciever_name: string;
+  };
+  sender: ObjectId;
+  status: string;
+  registered_at: Date;
+  updated_at: Date;
   name: string;
   email: string;
 }

@@ -4,7 +4,6 @@ import { Header } from "../../components/Header/Header";
 import { Button } from "../../components/Button/Button";
 import { GroupModal } from "../../components/Modal/GroupModal/GroupModal";
 import { fetchedGroupsData, formattedDate } from "../../utils/utils";
-import AuthContext from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { STATUS } from "../../constants/constants";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
@@ -22,13 +21,6 @@ export const MyGroupsList = () => {
   const [message, setMessage] = useState("");
 
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     fetchedGroupsData({ email: userEmail, setGroups, setMessage, setStatus });

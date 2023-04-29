@@ -17,6 +17,8 @@ export const PAYMENT_ERROR = "Payment should be a number.";
 export const DESCRIPTION_ERROR =
   "Description should be one or more characters.";
 export const RETRIEVED_ERROR = "Failed to retrieve data from the server.";
+export const SEND_SUCCESSFUL = "The request has been successfully sent.";
+export const SEND_ERROR = "The request failed.";
 // placeholders
 export const ENTER_USERNAME = "Enter your user name";
 export const ENTER_EMAIL = "Enter your email address";

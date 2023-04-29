@@ -13,6 +13,7 @@ import { STATUS } from "../../../constants/constants";
 import { ExpenseGroup, Friends, GroupModalProps } from "../../../types/types";
 import { SelectFriendsList } from "../../List/SelectFriendsList";
 import { SelectedTag } from "../../Tag/SelectedTag";
+import { ObjectId } from "mongoose";
 
 export const GroupModal = ({
   onClose,
@@ -56,12 +57,13 @@ export const GroupModal = ({
   };
 
   const handleCheckedChange = (
+    _id: ObjectId,
     email: string,
     name: string,
     isChecked: boolean
   ): void => {
     if (isChecked) {
-      const addFriend: Friends = { email: email, name: name };
+      const addFriend: Friends = { _id: _id, email: email, name: name };
       const updateFriends = [...checkedFriends, addFriend];
       setCheckedFriends(updateFriends);
     } else {

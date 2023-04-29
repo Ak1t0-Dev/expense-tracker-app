@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Header/Header";
 import { InputText } from "../../components/InputText/InputText";
@@ -19,18 +19,25 @@ import {
   CATCHED_ERROR,
   REGISTER_SUCCESSFUL,
   REGISTER_ERROR,
+  RETRIEVED_ERROR,
 } from "../../constants/message";
 import "./Expense.css";
-import AuthContext from "../../contexts/AuthContext";
 import { SearchModal } from "../../components/Modal/SearchModal/SearchModal";
 import { SearchButton } from "../../components/SearchButton/SearchButton";
-import { Categories, Friends, Group, Groups } from "../../types/types";
+import {
+  Categories,
+  Friends,
+  Group,
+  Groups,
+  PendingFriends,
+} from "../../types/types";
 
 export const Expense = () => {
   // for assigning a user email from the local storage
   const userEmail = localStorage.getItem("expense-tracker") || "";
 
   const [friends, setFriends] = useState<Friends[]>([]);
+  const [pendingFriends, setPendingFriends] = useState<PendingFriends[]>([]);
   const [groups, setGroups] = useState<Groups[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<Friends[]>([]);
   const [description, setDescription] = useState("");
@@ -46,13 +53,6 @@ export const Expense = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
 
   const isDisabled =
     selectedFriends.length === 0 ||
@@ -80,6 +80,50 @@ export const Expense = () => {
   useEffect(() => {
     setCalcPayment(calculateExpense(payment, selectedFriends.length));
   }, [payment, selectedFriends]);
+
+  useEffect(() => {
+    fetchPendingFriends();
+  }, []);
+
+  const convertPendingFriends: Friends[] = pendingFriends.map(
+    (pendingFriend) => {
+      const { reciever_id, reciever_name, reciever_email } =
+        pendingFriend.reciever;
+
+      return {
+        _id: reciever_id,
+        name: reciever_name ? reciever_name : "-",
+        email: reciever_email,
+      };
+    }
+  );
+
+  // commonize later
+  const fetchPendingFriends = async () => {
+    return await fetch("http://localhost:3001/api/get/pendingFriends", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data) {
+          setMessage(RETRIEVED_ERROR);
+          setStatus(STATUS.ERROR);
+        } else {
+          setPendingFriends(data);
+          console.log("data", data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        setMessage(CATCHED_ERROR);
+        setStatus(STATUS.ERROR);
+      });
+  };
 
   const handlePaymentChange: React.ChangeEventHandler<HTMLInputElement> = (
     event
@@ -290,6 +334,7 @@ export const Expense = () => {
           <SearchModal
             onClose={handleModalClose}
             friends={friends}
+            convertPendingFriends={convertPendingFriends}
             groups={groups}
             selectedFriends={selectedFriends}
             onSelectedFriendsChange={handleSelectedFriendsChange}

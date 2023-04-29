@@ -7,15 +7,18 @@ import { RiLogoutBoxRLine } from "react-icons/ri";
 import "./Header.css";
 import { Button } from "../Button/Button";
 import { useNavigate } from "react-router-dom";
-import { useContext } from "react";
-import AuthContext from "../../contexts/AuthContext";
+import { useDispatch } from "react-redux";
+import { logout } from "../../redux/user/userSlice";
 
 export const Header = () => {
-  const { handleLogout } = useContext(AuthContext);
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/");
+  };
   return (
-    <header className="header py-5">
+    <header className="header pt-5 pb-3">
       <ul className="header-list">
         <li className="header-button">
           <Button

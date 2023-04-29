@@ -1,9 +1,15 @@
+import { ObjectId } from "mongoose";
 import { Friends } from "../../types/types";
 
 export interface selectFriendsListProps {
   filteredFriends: Friends[];
   selectedFriends: Friends[];
-  handleCheckedChange: (email: string, name: string, checked: boolean) => void;
+  handleCheckedChange: (
+    _id: ObjectId,
+    email: string,
+    name: string,
+    checked: boolean
+  ) => void;
 }
 
 export const SelectFriendsList = ({
@@ -30,6 +36,7 @@ export const SelectFriendsList = ({
             }
             onChange={(event) =>
               handleCheckedChange(
+                friend._id,
                 friend.email,
                 friend.name,
                 event.target.checked

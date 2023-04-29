@@ -4,7 +4,6 @@ import { MainContainer } from "../../components/MainContainer/MainContainer";
 import { HistoryModal } from "../../components/Modal/HistoryModal/HistoryModal";
 import { formattedDate } from "../../utils/utils";
 import { useNavigate } from "react-router-dom";
-import AuthContext from "../../contexts/AuthContext";
 import { User, UserHistory } from "../../types/types";
 
 export const History = () => {
@@ -16,13 +15,6 @@ export const History = () => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     const user: User = {

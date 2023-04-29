@@ -4,7 +4,6 @@ import { Header } from "../../components/Header/Header";
 import { Button } from "../../components/Button/Button";
 import { AccountModal } from "../../components/Modal/AccountModal/AccountModal";
 import { useNavigate } from "react-router-dom";
-import AuthContext from "../../contexts/AuthContext";
 import { CATCHED_ERROR, RETRIEVED_ERROR } from "../../constants/message";
 import { STATUS } from "../../constants/constants";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
@@ -18,7 +17,6 @@ export const Acccount = () => {
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
-  const { isLoggedIn } = useContext(AuthContext);
 
   const fetchedUserData = async (email: string) => {
     try {
@@ -47,12 +45,6 @@ export const Acccount = () => {
       return false;
     }
   };
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigate("/");
-    }
-  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
     fetchedUserData(userEmail);
