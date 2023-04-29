@@ -18,16 +18,7 @@ import {
   validateEmailExist,
   validateLength,
 } from "../../../utils/utils";
-
-interface ModalProps {
-  onClose: () => void;
-  user: {
-    email: string;
-    name: string;
-  };
-  currentEmail: string;
-  fetchedUserData: (email: string) => void;
-}
+import { ModalProps } from "../../../types/types";
 
 export const AccountModal = ({
   onClose,
@@ -93,8 +84,18 @@ export const AccountModal = ({
     }
   };
 
-  const handleUserChange = (value: string) => {
-    setUserName(value);
+  const handleNameChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    setUserName(e.target.value);
+  };
+
+  const handleEmailChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+    setEmail(e.target.value);
+  };
+
+  const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    setEmail(e.target.value);
   };
 
   const updateUserData = async () => {
@@ -176,7 +177,7 @@ export const AccountModal = ({
                   title="User name:"
                   name="user-name"
                   value={userName}
-                  onChange={handleUserChange}
+                  onChange={handleNameChange}
                   type="text"
                   autoComplete="off"
                   placeholder="Enter a group name"
@@ -188,7 +189,7 @@ export const AccountModal = ({
                   title="Email address"
                   name="email-address"
                   value={email}
-                  onChange={setEmail}
+                  onChange={handleEmailChange}
                   type="email"
                   autoComplete="email"
                   placeholder="Enter your email address"
@@ -201,7 +202,7 @@ export const AccountModal = ({
                   title="New Password"
                   name="password"
                   value={newPassword}
-                  onChange={setNewPassword}
+                  onChange={handlePasswordChange}
                   type="password"
                   autoComplete="current-password"
                   placeholder={ENTER_NEW_PASSWORD}

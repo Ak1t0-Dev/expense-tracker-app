@@ -1,47 +1,44 @@
 import "./App.css";
 import { HomePage } from "./pages/HomePage/HomePage";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login/Login";
 import { Register } from "./pages/Register/Register";
-import { Main } from "./pages/Main/Main";
-import { FriendsList } from "./pages/FriendsList/FriendsList";
+import { MyFriendsList } from "./pages/MyFriendsList/MyFriendsList";
 import { Expense } from "./pages/Expense/Expense";
 import { History } from "./pages/History/History";
 import { Acccount } from "./pages/Account/Acccount";
-import { GroupsList } from "./pages/GroupsList/GroupsList";
-import { useEffect, useState } from "react";
-import AuthContext from "./contexts/AuthContext";
+import { MyGroupsList } from "./pages/MyGroupsList/MyGroupsList";
+import { useSelector } from "react-redux";
+import { RootState } from "./redux/store";
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const isLoginned = useSelector(
+    (state: RootState) => state.userStatus.isLoginned
+  );
 
-  useEffect(() => {
-    // Check local storage for a user session or token
-    const isLoggedIn = !!localStorage.getItem("expense-tracker");
-    setIsLoggedIn(isLoggedIn);
-  }, []);
+  const userLoginState = (component: JSX.Element) => {
+    return isLoginned ? component : <Navigate to="/" />;
+  };
 
-  const handleLogout = () => {
-    localStorage.removeItem("expense-tracker");
-    setIsLoggedIn(false);
+  const userLogoutState = (component: JSX.Element) => {
+    return isLoginned ? <Navigate to="/expense" /> : component;
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, setIsLoggedIn, handleLogout }}>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/main" element={<Main />} />
-          <Route path="/friends" element={<FriendsList />} />
-          <Route path="/groups" element={<GroupsList />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/expense" element={<Expense />} />
-          <Route path="/account" element={<Acccount />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthContext.Provider>
+    <BrowserRouter>
+      <Routes>
+        {/* before login */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={userLogoutState(<Login />)} />
+        <Route path="/expense" element={userLoginState(<Expense />)} />
+        <Route path="/friends" element={userLoginState(<MyFriendsList />)} />
+        <Route path="/groups" element={userLoginState(<MyGroupsList />)} />
+        <Route path="/history" element={userLoginState(<History />)} />
+        <Route path="/account" element={userLoginState(<Acccount />)} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

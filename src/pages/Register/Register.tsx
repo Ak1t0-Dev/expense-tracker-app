@@ -131,6 +131,31 @@ export const Register = () => {
     }
   };
 
+  const handleNameChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    console.log("handleNameChange");
+    return setUserName(event.target.value);
+  };
+
+  const handleEmailChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    return setEmail(event.target.value);
+  };
+
+  const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    return setPassword(event.target.value);
+  };
+
+  const handleConfirmPasswordChange: React.ChangeEventHandler<
+    HTMLInputElement
+  > = (event) => {
+    return setConfirmPassword(event.target.value);
+  };
+
   return (
     <>
       <MainContainer>
@@ -145,7 +170,7 @@ export const Register = () => {
                   title="User name"
                   name="user-name"
                   value={userName}
-                  onChange={setUserName}
+                  onChange={handleNameChange}
                   type="text"
                   autoComplete="off"
                   placeholder="Enter your user name"
@@ -157,7 +182,7 @@ export const Register = () => {
                   title="Email address"
                   name="email-address"
                   value={email}
-                  onChange={setEmail}
+                  onChange={handleEmailChange}
                   type="email"
                   autoComplete="email"
                   placeholder={ENTER_EMAIL}
@@ -170,7 +195,7 @@ export const Register = () => {
                   title="Password"
                   name="password"
                   value={password}
-                  onChange={setPassword}
+                  onChange={handlePasswordChange}
                   type="password"
                   autoComplete="current-password"
                   placeholder={ENTER_PASSWORD}
@@ -183,7 +208,7 @@ export const Register = () => {
                   title="Confirm Password"
                   name="confirm-password"
                   value={confirmPassword}
-                  onChange={setConfirmPassword}
+                  onChange={handleConfirmPasswordChange}
                   type="password"
                   autoComplete="off"
                   placeholder={ENTER_PASSWORD}

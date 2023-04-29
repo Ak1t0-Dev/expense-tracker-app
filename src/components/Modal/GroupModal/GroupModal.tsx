@@ -1,44 +1,36 @@
 import { useEffect, useState } from "react";
 import { InputText } from "../../InputText/InputText";
-import { validateLength } from "../../../utils/utils";
-import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
-import { Friends } from "../../../pages/Expense/Expense";
+import { fetchedFriendsData, validateLength } from "../../../utils/utils";
+// import { AutoSuggest } from "../../AutoSugggest/AutoSuggest";
 import { Button } from "../../Button/Button";
 import { Snackbar } from "../../Snackbar/Snackbar";
 import {
   CATCHED_ERROR,
   REGISTER_ERROR,
   REGISTER_SUCCESSFUL,
-  RETRIEVED_ERROR,
 } from "../../../constants/message";
 import { STATUS } from "../../../constants/constants";
-
-interface ModalProps {
-  onClose: () => void;
-  userEmail: string;
-  fetchedGroupsData: (email: string) => Promise<boolean>;
-}
-
-interface Group {
-  group_name: string;
-  email: string;
-  members: string[];
-}
+import { ExpenseGroup, Friends, GroupModalProps } from "../../../types/types";
+import { SelectFriendsList } from "../../List/SelectFriendsList";
+import { SelectedTag } from "../../Tag/SelectedTag";
+import { ObjectId } from "mongoose";
 
 export const GroupModal = ({
   onClose,
   userEmail,
   fetchedGroupsData,
-}: ModalProps) => {
+}: GroupModalProps) => {
   const [groupName, setGroupName] = useState("");
   const [groupNameError, setGroupNameError] = useState("");
   const [friends, setFriends] = useState<Friends[]>([]);
-  const [addedFriends, setAddedFriends] = useState<string[]>([]);
+  const [filteredFriends, setFilteredFriends] = useState<Friends[]>(friends);
+  const [checkedFriends, setCheckedFriends] = useState<Friends[]>([]);
+
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
 
   // to disable a button
-  const isDisabled = groupName.trim() === "" || addedFriends.length === 0;
+  const isDisabled = groupName.trim() === "" || checkedFriends.length === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     let isValid = true;
@@ -46,7 +38,7 @@ export const GroupModal = ({
     // validations
     isValid = validateLength({
       target: groupName,
-      fieldName: "User name",
+      fieldName: "Group name",
       min: 1,
       max: 30,
       fieldError: setGroupNameError,
@@ -64,37 +56,38 @@ export const GroupModal = ({
     }
   };
 
-  const handleInputReset = () => {
-    setAddedFriends([]);
-    setGroupName("");
+  const handleCheckedChange = (
+    _id: ObjectId,
+    email: string,
+    name: string,
+    isChecked: boolean
+  ): void => {
+    if (isChecked) {
+      const addFriend: Friends = { _id: _id, email: email, name: name };
+      const updateFriends = [...checkedFriends, addFriend];
+      setCheckedFriends(updateFriends);
+    } else {
+      removeSelectedFriend(email);
+    }
   };
 
-  // for AutoSuggest
-  const handleGetFriends = (value: string) => {
-    setAddedFriends([...addedFriends, value]);
-    return value;
-  };
-  // for AutoSuggest
-  const handleDeleteFriends = (value: string) => {
-    const index = addedFriends.indexOf(value);
-    if (index > -1) {
-      const newAddedFriends = [...addedFriends];
-      newAddedFriends.splice(index, 1);
-      setAddedFriends(newAddedFriends);
-    }
+  const handleInputReset = () => {
+    setFilteredFriends([]);
+    setGroupName("");
   };
 
   // ----------------------------------------------------------------
   // create a group and members and save an expense to a collection
   // ----------------------------------------------------------------
   const createGroup = async (): Promise<boolean> => {
-    const group: Group = {
+    const group: ExpenseGroup = {
       group_name: groupName,
       email: userEmail,
-      members: addedFriends,
+      members: checkedFriends,
     };
 
     try {
+      console.log(group);
       const response = await fetch("http://localhost:3001/api/register/group", {
         method: "POST",
         mode: "cors",
@@ -119,40 +112,30 @@ export const GroupModal = ({
     }
   };
 
-  const fetchFriendsData = async (email: string) => {
-    try {
-      const response = await fetch("http://localhost:3001/api/get/friends", {
-        method: "POST",
-        mode: "cors",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email: email }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setFriends(data);
-        return true;
-      } else {
-        setMessage(RETRIEVED_ERROR);
-        setStatus(STATUS.ERROR);
-        return false;
-      }
-    } catch (error) {
-      console.log(error);
-      setMessage(CATCHED_ERROR);
-      setStatus(STATUS.ERROR);
-      return false;
-    }
-  };
-
   useEffect(() => {
-    fetchFriendsData(userEmail);
+    fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
   }, [userEmail]);
 
   if (!userEmail) {
     return null;
   }
+
+  const handleRemoveFriends = (email: string) => {
+    removeSelectedFriend(email);
+  };
+
+  const removeSelectedFriend = (email: string) => {
+    const updatedFriends = checkedFriends.filter(
+      (friend) => friend.email !== email
+    );
+    setCheckedFriends(updatedFriends);
+  };
+
+  const handleGroupNameChange: React.ChangeEventHandler<HTMLInputElement> = (
+    e
+  ) => {
+    setGroupName(e.target.value);
+  };
 
   return (
     <div
@@ -191,18 +174,28 @@ export const GroupModal = ({
                 title="Group name:"
                 name="group"
                 value={groupName}
-                onChange={setGroupName}
+                onChange={handleGroupNameChange}
                 type="text"
                 autoComplete="off"
                 placeholder="Enter a group name"
                 error={groupNameError}
               />
-              <AutoSuggest
-                friends={friends}
-                addedFriends={addedFriends}
-                handleGetFriends={handleGetFriends}
-                handleDeleteFriends={handleDeleteFriends}
+              <SelectFriendsList
+                filteredFriends={friends}
+                selectedFriends={checkedFriends}
+                handleCheckedChange={handleCheckedChange}
               />
+              <div className="h-12 px-2 flex row flex-start flex-wrap items-start overflow-auto gap-1">
+                {checkedFriends.map((friend, index) => {
+                  return (
+                    <SelectedTag
+                      item={friend.name}
+                      index={index}
+                      handleRemoveItem={() => handleRemoveFriends(friend.email)}
+                    />
+                  );
+                })}
+              </div>
             </div>
             <div className="flex items-center p-6 space-x-2">
               <Button

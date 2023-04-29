@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/Button/Button";
 import { InputText } from "../../components/InputText/InputText";
@@ -14,11 +14,12 @@ import {
   CATCHED_ERROR,
 } from "../../constants/message";
 import { STATUS } from "../../constants/constants";
-import AuthContext from "../../contexts/AuthContext";
+import { useDispatch } from "react-redux";
+import { login } from "../../redux/user/userSlice";
 
 export const Login = () => {
   const navigate = useNavigate();
-  const { setIsLoggedIn } = useContext(AuthContext);
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const [password, setPassword] = useState("");
@@ -46,8 +47,7 @@ export const Login = () => {
           setMessage(LOGIN_ERROR);
           setStatus(STATUS.ERROR);
         } else {
-          localStorage.setItem("expense-tracker", data.email);
-          setIsLoggedIn(true);
+          dispatch(login(data));
           setMessage(LOGIN_SUCCESSFUL);
           setStatus(STATUS.SUCCESS);
           setTimeout(() => {
@@ -86,8 +86,20 @@ export const Login = () => {
     }
 
     if (isValid) {
-      await loginUser();
+      loginUser();
     }
+  };
+
+  const handleEmailChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    return setEmail(event.target.value);
+  };
+
+  const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> = (
+    event
+  ) => {
+    return setPassword(event.target.value);
   };
 
   return (
@@ -104,7 +116,7 @@ export const Login = () => {
                   title="Email address"
                   name="email"
                   value={email}
-                  onChange={setEmail}
+                  onChange={handleEmailChange}
                   type="email"
                   autoComplete="email"
                   placeholder="Email address"
@@ -117,7 +129,7 @@ export const Login = () => {
                   title="Password"
                   name="password"
                   value={password}
-                  onChange={setPassword}
+                  onChange={handlePasswordChange}
                   type="password"
                   autoComplete="current-password"
                   placeholder="Password"
