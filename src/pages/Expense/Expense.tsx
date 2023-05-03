@@ -31,13 +31,19 @@ import {
   Groups,
   PendingFriends,
 } from "../../types/types";
+import { useGetRequest } from "../../hooks/useGetRequest";
+import {
+  GET_CATEGORIES_API_URL,
+  GET_FRIENDS_API_URL,
+  GET_PENDINGFRIENDS_API_URL,
+} from "../../constants/apiUrls";
+import { usePostRequest } from "../../hooks/usePostRequest";
 
 export const Expense = () => {
   // for assigning a user email from the local storage
+  console.log("rerender");
   const userEmail = localStorage.getItem("expense-tracker") || "";
 
-  const [friends, setFriends] = useState<Friends[]>([]);
-  const [pendingFriends, setPendingFriends] = useState<PendingFriends[]>([]);
   const [groups, setGroups] = useState<Groups[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<Friends[]>([]);
   const [description, setDescription] = useState("");
@@ -46,7 +52,6 @@ export const Expense = () => {
   const [payment, setPayment] = useState(0);
   const [paymentError, setPaymentError] = useState("");
   const [calcPayment, setCalcPayment] = useState(0);
-  const [categories, setCategories] = useState<Categories[]>([]);
   const [category, setCategory] = useState(0);
   const [status, setStatus] = useState<STATUS>(STATUS.EMPTY);
   const [message, setMessage] = useState("");
@@ -60,33 +65,54 @@ export const Expense = () => {
     payment === 0 ||
     isNaN(payment);
 
-  useEffect(() => {
-    fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
-  }, [userEmail]);
+  interface UserInfo {
+    email: string;
+  }
+
+  // ----------------------------------------------------------------
+  // fetch categories
+  // ----------------------------------------------------------------
+  const { data: categories, error: categoriesError } = useGetRequest<
+    Categories[]
+  >(GET_CATEGORIES_API_URL, RETRIEVED_ERROR);
+
+  // ----------------------------------------------------------------
+  // fetch pending friends
+  // --------------------------------------------------------------
+  // { email: userEmail }
+  const {
+    data: pendingFriends,
+    error: pendingFriendsError,
+    isLoading,
+  } = usePostRequest<PendingFriends[], UserInfo>(
+    GET_PENDINGFRIENDS_API_URL,
+    RETRIEVED_ERROR,
+    { email: userEmail }
+  );
+
+  // ----------------------------------------------------------------
+  // fetch friends
+  // ----------------------------------------------------------------
+  // const {
+  //   data: friends,
+  //   error: friendsError,
+  //   isLoading,
+  // } = usePostRequest<Friends[], UserInfo>(
+  //   GET_FRIENDS_API_URL,
+  //   RETRIEVED_ERROR,
+  //   { email: userEmail }
+  // );
 
   useEffect(() => {
     fetchedGroupsData({ email: userEmail, setGroups, setMessage, setStatus });
   }, [userEmail]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/get/categories")
-      .then((response) => response.json())
-      .then((data) => {
-        setCategories(data);
-        setCategory(data[0].category_order);
-      });
-  }, []);
-
-  useEffect(() => {
     setCalcPayment(calculateExpense(payment, selectedFriends.length));
   }, [payment, selectedFriends]);
 
-  useEffect(() => {
-    fetchPendingFriends();
-  }, []);
-
-  const convertPendingFriends: Friends[] = pendingFriends.map(
-    (pendingFriend) => {
+  const convertPendingFriends: Friends[] =
+    pendingFriends?.map((pendingFriend) => {
       const { reciever_id, reciever_name, reciever_email } =
         pendingFriend.reciever;
 
@@ -95,35 +121,34 @@ export const Expense = () => {
         name: reciever_name ? reciever_name : "-",
         email: reciever_email,
       };
-    }
-  );
+    }) || [];
 
   // commonize later
-  const fetchPendingFriends = async () => {
-    return await fetch("http://localhost:3001/api/get/pendingFriends", {
-      method: "POST",
-      mode: "cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: userEmail,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (!data) {
-          setMessage(RETRIEVED_ERROR);
-          setStatus(STATUS.ERROR);
-        } else {
-          setPendingFriends(data);
-          console.log("data", data);
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        setMessage(CATCHED_ERROR);
-        setStatus(STATUS.ERROR);
-      });
-  };
+  // const fetchPendingFriends = async () => {
+  //   return await fetch("http://localhost:3001/api/get/pendingFriends", {
+  //     method: "POST",
+  //     mode: "cors",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       email: userEmail,
+  //     }),
+  //   })
+  //     .then((response) => response.json())
+  //     .then((data) => {
+  //       if (!data) {
+  //         setMessage(RETRIEVED_ERROR);
+  //         setStatus(STATUS.ERROR);
+  //       } else {
+  //         setPendingFriends(data);
+  //         console.log("data", data);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //       setMessage(CATCHED_ERROR);
+  //       setStatus(STATUS.ERROR);
+  //     });
+  // };
 
   const handlePaymentChange: React.ChangeEventHandler<HTMLInputElement> = (
     event
@@ -246,6 +271,14 @@ export const Expense = () => {
     setCategory(0);
   };
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (pendingFriendsError) {
+    return <div>Error: {pendingFriendsError}</div>;
+  }
+
   return (
     <>
       <Header />
@@ -262,7 +295,7 @@ export const Expense = () => {
               className="bg-white border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5"
               onChange={handleCategoriesChange}
             >
-              {categories.map((category) => {
+              {categories?.map((category) => {
                 return (
                   <option
                     key={category.category_order}
@@ -333,7 +366,8 @@ export const Expense = () => {
         {isModalOpen && (
           <SearchModal
             onClose={handleModalClose}
-            friends={friends}
+            // friends={friends!}
+            friends={[]}
             convertPendingFriends={convertPendingFriends}
             groups={groups}
             selectedFriends={selectedFriends}
