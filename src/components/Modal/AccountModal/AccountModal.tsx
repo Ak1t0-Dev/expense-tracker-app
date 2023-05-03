@@ -95,7 +95,7 @@ export const AccountModal = ({
   const handlePasswordChange: React.ChangeEventHandler<HTMLInputElement> = (
     e
   ) => {
-    setEmail(e.target.value);
+    setNewPassword(e.target.value);
   };
 
   const updateUserData = async () => {
