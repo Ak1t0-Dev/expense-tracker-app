@@ -4,14 +4,19 @@ import { Button } from "../../Button/Button";
 import { Friends, Groups, SearchModalProps } from "../../../types/types";
 import { SelectedTag } from "../../Tag/SelectedTag";
 import { ObjectId } from "mongoose";
+import { initialGroup } from "../../../pages/Expense/Expense";
 
 export const SearchModal = ({
   onClose,
   friends,
   convertPendingFriends,
   groups,
+  partner,
+  onSelectedParnterChange,
   selectedFriends,
   onSelectedFriendsChange,
+  selectedGroup,
+  onSelectedGroupChange,
 }: SearchModalProps) => {
   const [filteredGroups, setFilteredGroups] = useState<Groups[]>(groups);
   const [filteredFriends, setFilteredFriends] = useState<Friends[]>(friends);
@@ -20,17 +25,20 @@ export const SearchModal = ({
   >(convertPendingFriends);
   const [checkedFriends, setCheckedFriends] =
     useState<Friends[]>(selectedFriends);
-  const [partner, setPartner] = useState<PARTNER>(PARTNER.FRIENDS);
+  // const [partner, setPartner] = useState<PARTNER>(PARTNER.FRIENDS);
   const [searchValue, setSearchValue] = useState("");
-
-  const isDisabled = checkedFriends.length === 0;
+  const [checkedGroup, setCheckedGroup] = useState<Groups>(selectedGroup);
+  const isDisabled =
+    partner === PARTNER.FRIENDS
+      ? checkedFriends.length === 0
+      : checkedGroup.uuid === "";
 
   // const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
   //   event.preventDefault();
   // };
 
   const switchPartner = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPartner(event.target.value as PARTNER);
+    onSelectedParnterChange(event.target.value as PARTNER);
   };
 
   // ----------------------------------------------------------------
@@ -43,13 +51,11 @@ export const SearchModal = ({
     isChecked: boolean
   ): void => {
     if (isChecked) {
-      console.log("Hi!");
       const addFriend: Friends = { _id: _id, email: email, name: name };
       const updateFriends = [...checkedFriends, addFriend];
       setCheckedFriends(updateFriends);
       onSelectedFriendsChange(updateFriends);
     } else {
-      console.log("Hi!");
       removeSelectedFriend(email);
     }
   };
@@ -66,6 +72,23 @@ export const SearchModal = ({
     onSelectedFriendsChange(updatedFriends);
   };
 
+  // ----------------------------------------------------------------
+  // Check group to add or not
+  // ----------------------------------------------------------------
+  const handleCheckedGroupChange = (group: Groups): void => {
+    setCheckedGroup((prevCheckedGroup) => {
+      if (prevCheckedGroup.uuid === group.uuid) {
+        return initialGroup;
+      } else {
+        return group;
+      }
+    });
+  };
+
+  useEffect(() => {
+    onSelectedGroupChange(checkedGroup);
+  }, [checkedGroup, onSelectedGroupChange]);
+
   // when a user search from the friends list it will be executed
   useEffect(() => {
     const valueLowerCase = searchValue.toLowerCase();
@@ -79,7 +102,6 @@ export const SearchModal = ({
       );
     });
 
-    // console.log(convertPendingFriends);
     // modifiy
     const filteredPendingList = convertPendingFriends.filter((friend) => {
       const nameLowerCase = friend.name.toLowerCase();
@@ -92,7 +114,7 @@ export const SearchModal = ({
 
     setFilteredFriends(filteredList);
     setFilteredPendingFriends(filteredPendingList);
-  }, [searchValue]);
+  }, [searchValue, friends, convertPendingFriends]);
 
   // when a user search from the groups list it will be executed
   useEffect(() => {
@@ -104,6 +126,12 @@ export const SearchModal = ({
     });
     setFilteredGroups(filteredList);
   }, [searchValue, groups]);
+
+  const onAddToExpense = () => {
+    if (partner === PARTNER.FRIENDS) {
+    } else {
+    }
+  };
 
   return (
     <>
@@ -224,7 +252,7 @@ export const SearchModal = ({
               <>
                 <h3 className="pl-6 pt-4">friends</h3>
                 <ul className="flex flex-col px-6 border-gray-200 rounded-b overflow-auto h-40">
-                  {filteredFriends.map((friend, index) => (
+                  {filteredFriends.map((friend) => (
                     <li key={friend.email}>
                       <input
                         className="hidden peer"
@@ -303,12 +331,24 @@ export const SearchModal = ({
             ) : (
               <ul className="flex flex-col p-6 border-gray-200 rounded-b overflow-auto h-80">
                 {filteredGroups.map((group, index) => (
-                  <li
-                    key={index}
-                    className="mb-2 font-medium bg-white border-2 border-black px-4 py-2 flex flex-row justify-between cursor-pointer"
-                  >
-                    <span className="inline-block">{group.group_name}</span>
-                    <span className="inline-block">{`${group.members.length} members`}</span>
+                  <li key={index}>
+                    <input
+                      className="hidden peer"
+                      type="checkbox"
+                      name="groups"
+                      value={group.uuid}
+                      id={group.uuid}
+                      checked={checkedGroup.uuid === group.uuid}
+                      onChange={() => handleCheckedGroupChange(group)}
+                    />
+                    <label
+                      className="mb-2 font-medium bg-yellow-200 border-2 border-black px-4 py-2 flex flex-row justify-between cursor-pointer peer-checked:bg-blue-600"
+                      htmlFor={group.uuid}
+                      key={index}
+                    >
+                      <span className="inline-block">{group.group_name}</span>
+                      <span className="inline-block">{`${group.members.length} members`}</span>
+                    </label>
                   </li>
                 ))}
               </ul>
@@ -319,7 +359,7 @@ export const SearchModal = ({
               bgColor="bg-amber-800"
               hoverColor="hover:bg-amber-700"
               focusColor="focus:bg-amber-800"
-              onClick={onClose}
+              onClick={onAddToExpense}
               disabled={isDisabled}
             />
           </div>

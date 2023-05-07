@@ -1,5 +1,6 @@
 import { ObjectId } from "mongoose";
 import { ReactNode } from "react";
+import { PARTNER } from "../constants/constants";
 
 export interface User {
   email: string;
@@ -66,8 +67,12 @@ export interface SearchModalProps {
   friends: Friends[];
   convertPendingFriends: Friends[];
   groups: Groups[];
+  partner: string;
+  onSelectedParnterChange: (partner: PARTNER) => void;
   selectedFriends: Friends[];
   onSelectedFriendsChange: (checkedFriends: Friends[]) => void;
+  selectedGroup: Groups;
+  onSelectedGroupChange: (checkedGroup: Groups) => void;
 }
 
 export interface HistoryModalProps {
@@ -155,6 +160,7 @@ export interface PendingFriends {
 
 export interface Groups {
   uuid: string;
+  _id: ObjectId | null;
   group_name: string;
   members: Friends[];
   registered_name: {
@@ -170,6 +176,7 @@ export interface Groups {
 }
 
 export interface Group {
+  group_id: ObjectId | null;
   group_name: string;
   email: string; // to get user_id from a users collection
   members: Friends[]; // to get user_id from a users collection and to create group members

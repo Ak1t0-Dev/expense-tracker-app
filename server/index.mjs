@@ -84,6 +84,7 @@ const Processes = mongoose.model('process', processesSchema);
 
 // groups config
 const groupsSchema = new mongoose.Schema({
+  group_id: { type: ObjectId },
   uuid: { type: String, required: true, unique: true },
   group_name: { type: String },
   member_id: { type: Array, required: true },
@@ -100,7 +101,7 @@ const expensesSchema = new mongoose.Schema({
   uuid: { type: String, required: true, unique: true },
   payer_id: { type: ObjectId, required: true },
   method_id: { type: ObjectId, required: true },
-  group_id: { type: ObjectId, required: true },
+  group_id: { type: ObjectId },
   process_id: { type: ObjectId, required: true },
   category_id: { type: ObjectId, required: true },
   description: { type: String, required: true },
@@ -123,6 +124,8 @@ const friendrequestsSchema = new mongoose.Schema({
 }, { versionKey: false });
 
 const Friendrequests = mongoose.model('friendrequests', friendrequestsSchema);
+
+// 
 
 // ----------------------------------------------------------------------------
 //  function: create a group
@@ -156,42 +159,54 @@ const createGroup = async (userData) => {
 // ----------------------------------------------------------------------------
 app.post('/api/register/expense', async (req, res) => {
 
-  const memberEmail = req.body.members.map((member) => member.email);
+  const memberEmail = req.body.group.members.map((member) => member.email);
+  const date = new Date();
 
   const userData = {
     uuid: uuidv4(),
-    date: new Date(),
-    group_name: req.body.group_name,
-    email: req.body.email,
+    date: date,
+    group_name: req.body.group.group_name,
+    email: req.body.group.email,
     members: memberEmail,
   }
 
   try {
-    const resultGroup = await createGroup(userData);
+
+    let resultGroup;
+    let groupId;
+
+    // friends or a group
+    if (req.body.group.group_id === null) {
+      resultGroup = await createGroup(userData);
+      groupId = resultGroup._id;
+    } else {
+      groupId = req.body.group.group_id;
+    }
 
     //  create an expense
-    const categoryOrder = req.body.category_order;
-    const methodOrder = req.body.method_order;
-    const processStatus = req.body.process_status;
-    const resultPayer = await Users.findOne({ email: req.body.payer });
+    const categoryOrder = req.body.group.category_order;
+    const methodOrder = req.body.group.method_order;
+    const processStatus = req.body.group.process_status;
+    const resultPayer = await Users.findOne({ email: req.body.group.payer });
     const resultCategory = await Categories.findOne({ category_order: categoryOrder }, { _id: 1 });
     const resultMethod = await Methods.findOne({ method_order: methodOrder }, { _id: 1 });
     const resultProcess = await Processes.findOne({ process_status: processStatus }, { _id: 1 });
+
 
     const newExpenses = new Expenses(
       {
         uuid: uuidv4(),
         payer_id: resultPayer._id,
-        group_id: resultGroup._id,
+        group_id: groupId,
         category_id: resultCategory._id,
         method_id: resultMethod._id,
         process_id: resultProcess._id,
-        description: req.body.description,
-        payment: req.body.payment,
-        registered_id: resultGroup.registered_id,
-        registered_at: resultGroup.registered_at,
-        updated_id: resultGroup.registered_id,
-        updated_at: resultGroup.registered_at,
+        description: req.body.group.description,
+        payment: req.body.group.payment,
+        registered_id: req.body.user_id,
+        registered_at: date,
+        updated_id: req.body.user_id,
+        updated_at: date,
       }
     );
 
@@ -348,7 +363,7 @@ app.post("/api/get/groups", async (req, res) => {
       },
       {
         $project: {
-          _id: 0,
+          _id: 1,
           uuid: 1,
           group_name: 1,
           members: {

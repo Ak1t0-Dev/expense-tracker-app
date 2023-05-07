@@ -1,3 +1,4 @@
+import { ObjectId } from "mongoose";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../../components/Header/Header";
@@ -10,7 +11,7 @@ import {
   fetchedFriendsData,
   fetchedGroupsData,
 } from "../../utils/utils";
-import { STATUS } from "../../constants/constants";
+import { PARTNER, STATUS } from "../../constants/constants";
 import { Button } from "../../components/Button/Button";
 import { Snackbar } from "../../components/Snackbar/Snackbar";
 import {
@@ -38,14 +39,34 @@ import {
   GET_PENDINGFRIENDS_API_URL,
 } from "../../constants/apiUrls";
 import { usePostRequest } from "../../hooks/usePostRequest";
+import { useSelector } from "react-redux";
+import { RootState } from "../../redux/store";
+
+// 後に修正
+export const initialGroup: Groups = {
+  uuid: "",
+  _id: null,
+  group_name: "",
+  members: [],
+  registered_name: {
+    email: "",
+    name: "",
+  },
+  registered_at: new Date(),
+  updated_name: {
+    email: "",
+    name: "",
+  },
+  updated_at: new Date(),
+};
 
 export const Expense = () => {
   // for assigning a user email from the local storage
   console.log("rerender");
   const userEmail = localStorage.getItem("expense-tracker") || "";
-
+  const [friends, setFriends] = useState<Friends[]>([]);
+  const [pendingFriends, setPendingFriends] = useState<PendingFriends[]>([]);
   const [groups, setGroups] = useState<Groups[]>([]);
-  const [selectedFriends, setSelectedFriends] = useState<Friends[]>([]);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState("");
   const [payer, setPayer] = useState(userEmail);
@@ -57,10 +78,37 @@ export const Expense = () => {
   const [message, setMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // registered by friends
+  const [selectedFriends, setSelectedFriends] = useState<Friends[]>([]);
+  // registered by group
+  const [selectedGroup, setSelectedGroup] = useState<Groups>(initialGroup);
+  // expense members
+  const [partner, setPartner] = useState<PARTNER>(PARTNER.FRIENDS);
+
+  const userId = useSelector((state: RootState) => state.userStatus.user?._id);
+
+  // set the data from a group or friends
+  let members: Friends[];
+  let membersTotal: number;
+  let groupName: string;
+  let groupId: ObjectId | null;
+
+  if (partner === PARTNER.FRIENDS) {
+    members = selectedFriends;
+    membersTotal = members.length + 1;
+    groupName = "";
+    groupId = null;
+  } else {
+    members = selectedGroup.members;
+    membersTotal = members.length;
+    groupName = selectedGroup.group_name;
+    groupId = selectedGroup._id;
+  }
+
   const navigate = useNavigate();
 
   const isDisabled =
-    selectedFriends.length === 0 ||
+    members.length === 0 ||
     description.trim() === "" ||
     payment === 0 ||
     isNaN(payment);
@@ -69,6 +117,8 @@ export const Expense = () => {
     email: string;
   }
 
+  console.log(selectedGroup);
+
   // ----------------------------------------------------------------
   // fetch categories
   // ----------------------------------------------------------------
@@ -76,19 +126,23 @@ export const Expense = () => {
     Categories[]
   >(GET_CATEGORIES_API_URL, RETRIEVED_ERROR);
 
+  useEffect(() => {
+    setCategory(categories?.[0].category_order ?? 0);
+  }, [categories]);
+
   // ----------------------------------------------------------------
   // fetch pending friends
-  // --------------------------------------------------------------
-  // { email: userEmail }
-  const {
-    data: pendingFriends,
-    error: pendingFriendsError,
-    isLoading,
-  } = usePostRequest<PendingFriends[], UserInfo>(
-    GET_PENDINGFRIENDS_API_URL,
-    RETRIEVED_ERROR,
-    { email: userEmail }
-  );
+  // ----------------------------------------------------------------
+
+  // const {
+  //   data: pendingFriends,
+  //   error: pendingFriendsError,
+  //   isLoading,
+  // } = usePostRequest<PendingFriends[], UserInfo>(
+  //   GET_PENDINGFRIENDS_API_URL,
+  //   RETRIEVED_ERROR,
+  //   { email: userEmail }
+  // );
 
   // ----------------------------------------------------------------
   // fetch friends
@@ -104,12 +158,16 @@ export const Expense = () => {
   // );
 
   useEffect(() => {
+    fetchedFriendsData({ email: userEmail, setFriends, setMessage, setStatus });
+  }, [userEmail]);
+
+  useEffect(() => {
     fetchedGroupsData({ email: userEmail, setGroups, setMessage, setStatus });
   }, [userEmail]);
 
   useEffect(() => {
-    setCalcPayment(calculateExpense(payment, selectedFriends.length));
-  }, [payment, selectedFriends]);
+    setCalcPayment(calculateExpense(payment, membersTotal - 1));
+  }, [payment, membersTotal]);
 
   const convertPendingFriends: Friends[] =
     pendingFriends?.map((pendingFriend) => {
@@ -124,31 +182,31 @@ export const Expense = () => {
     }) || [];
 
   // commonize later
-  // const fetchPendingFriends = async () => {
-  //   return await fetch("http://localhost:3001/api/get/pendingFriends", {
-  //     method: "POST",
-  //     mode: "cors",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({
-  //       email: userEmail,
-  //     }),
-  //   })
-  //     .then((response) => response.json())
-  //     .then((data) => {
-  //       if (!data) {
-  //         setMessage(RETRIEVED_ERROR);
-  //         setStatus(STATUS.ERROR);
-  //       } else {
-  //         setPendingFriends(data);
-  //         console.log("data", data);
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.log(error);
-  //       setMessage(CATCHED_ERROR);
-  //       setStatus(STATUS.ERROR);
-  //     });
-  // };
+  const fetchPendingFriends = async () => {
+    return await fetch("http://localhost:3001/api/get/pendingFriends", {
+      method: "POST",
+      mode: "cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data) {
+          setMessage(RETRIEVED_ERROR);
+          setStatus(STATUS.ERROR);
+        } else {
+          setPendingFriends(data);
+          console.log("data", data);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+        setMessage(CATCHED_ERROR);
+        setStatus(STATUS.ERROR);
+      });
+  };
 
   const handlePaymentChange: React.ChangeEventHandler<HTMLInputElement> = (
     event
@@ -191,9 +249,10 @@ export const Expense = () => {
   // ----------------------------------------------------------------
   const createExpense = async (): Promise<boolean> => {
     const group: Group = {
-      group_name: "",
+      group_id: groupId,
+      group_name: groupName,
       email: userEmail,
-      members: selectedFriends,
+      members: members,
       category_order: category,
       method_order: 1,
       process_status: 1,
@@ -202,14 +261,21 @@ export const Expense = () => {
       payer: payer,
     };
 
+    const requestWithId = {
+      user_id: userId,
+      group: group,
+    };
+
     try {
+      console.log(requestWithId);
+      console.log(categories?.[0].category_order);
       const response = await fetch(
         "http://localhost:3001/api/register/expense",
         {
           method: "POST",
           mode: "cors",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(group),
+          body: JSON.stringify(requestWithId),
         }
       );
 
@@ -258,8 +324,16 @@ export const Expense = () => {
     setIsModalOpen(false);
   };
 
+  const handleSelectedPartnerChange = (partner: PARTNER) => {
+    setPartner(partner);
+  };
+
   const handleSelectedFriendsChange = (checkedFriends: Friends[]) => {
     setSelectedFriends(checkedFriends);
+  };
+
+  const handleSelectedGroupChange = (checkedGroup: Groups) => {
+    setSelectedGroup(checkedGroup);
   };
 
   const handleInputReset = () => {
@@ -271,13 +345,13 @@ export const Expense = () => {
     setCategory(0);
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
+  // if (isLoading) {
+  //   return <div>Loading...</div>;
+  // }
 
-  if (pendingFriendsError) {
-    return <div>Error: {pendingFriendsError}</div>;
-  }
+  // if (pendingFriendsError) {
+  //   return <div>Error: {pendingFriendsError}</div>;
+  // }
 
   return (
     <>
@@ -336,11 +410,14 @@ export const Expense = () => {
               className="bg-white border border-gray-300 text-black text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full px-2.5 py-1.5"
               onChange={handleSelectChange}
             >
-              <option value={userEmail}>you</option>
-              {selectedFriends.map((friend, index) => {
+              {partner === PARTNER.FRIENDS ? (
+                <option value={userEmail}>you</option>
+              ) : null}
+
+              {members.map((friend, index) => {
                 return (
                   <option key={index} value={friend.email}>
-                    {friend.email}
+                    {userEmail === friend.email ? "you" : friend.email}
                   </option>
                 );
               })}
@@ -349,8 +426,7 @@ export const Expense = () => {
           <div>
             <h3>Divided expense:</h3>
             <h4>
-              {calcPayment.toLocaleString()}/person (
-              {selectedFriends.length + 1} people)
+              {calcPayment.toLocaleString()}/person ({membersTotal} people)
             </h4>
           </div>
           <Button
@@ -366,12 +442,16 @@ export const Expense = () => {
         {isModalOpen && (
           <SearchModal
             onClose={handleModalClose}
-            // friends={friends!}
-            friends={[]}
+            friends={friends!}
+            // friends={[]}
             convertPendingFriends={convertPendingFriends}
             groups={groups}
+            partner={partner}
+            onSelectedParnterChange={handleSelectedPartnerChange}
             selectedFriends={selectedFriends}
             onSelectedFriendsChange={handleSelectedFriendsChange}
+            selectedGroup={selectedGroup!}
+            onSelectedGroupChange={handleSelectedGroupChange}
           />
         )}
         {status !== "" && <Snackbar type={status} message={message} />}
